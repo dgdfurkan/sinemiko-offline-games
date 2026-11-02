@@ -18,6 +18,7 @@ Sinem için internetsiz oyun koleksiyonu. Telefona ya da tablete bir kere ana ek
 | Antikor Atışı | Lab | Fırlatıcıyı ger, mikropları yık |
 | Petri Kabı | Lab | Hücreleri birleştir, atomdan canlıya çık |
 | Mitoz Fırtınası | Lab | Bir hücreye dokun, zincirleme bölünme başlasın |
+| Damar Bağla | Lab | Aynı renkli uçları kesişmeden birleştir, kan aksın |
 | Harf Kovanı | Kelime | Petekten kelime çıkar, kovanı balla doldur |
 | Biyo Bulmaca | Kelime | Laboratuvar terimlerinden kare bulmaca |
 | Bee Koyun | Fizik | Köpekle sürüyü ağıla götür, her gün başka bir engel |

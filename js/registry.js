@@ -19,6 +19,7 @@ export const GAMES = [
   { id: 'antikor', group: 'lab', title: 'Antikor Atışı', tag: 'Ger, fırlat, yık', music: 'antikor', card: '#8ccf3e', load: () => import('./games/antikor.js') },
   { id: 'mitoz', group: 'lab', title: 'Mitoz Fırtınası', tag: 'Dokun, zincir başlasın', music: 'petri', card: '#2aa88a', load: () => import('./games/mitoz.js') },
   { id: 'petri', group: 'lab', title: 'Petri Kabı', tag: 'Atomdan canlıya büyüt', music: 'petri', card: '#7fd6d0', load: () => import('./games/petri.js') },
+  { id: 'damar', group: 'lab', title: 'Damar Bağla', tag: 'Uçları birleştir, kan aksın', music: 'nano', card: '#2a4fd6', load: () => import('./games/damar.js') },
   { id: 'kovan', group: 'kelime', title: 'Harf Kovanı', tag: 'Petekten kelime çıkar', music: 'hive', card: '#ffb31a', load: () => import('./games/kovan.js') },
   { id: 'bulmaca', group: 'kelime', title: 'Biyo Bulmaca', tag: 'Laboratuvar defteri', music: 'bulmaca', card: '#f4ecd2', dark: true, load: () => import('./games/bulmaca.js') },
   { id: 'koyun', group: 'fizik', title: 'Bee Koyun', tag: 'Sürüyü ağıla götür', music: 'koyun', card: '#7cc95a', load: () => import('./games/koyun.js') },
