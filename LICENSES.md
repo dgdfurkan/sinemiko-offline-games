@@ -20,6 +20,8 @@ Paytone One, Nunito, Caveat, Press Start 2P, Pixelify Sans, Playfair Display, Bu
 - https://github.com/mertemin/turkish-word-list
 - https://github.com/CanNuhlar/Turkce-Kelime-Listesi
 
+`data/yaygin.txt` bu listenin sık kullanılan kelimelerle kesişimidir; sıklık bilgisi FrequencyWords projesinden gelir (https://github.com/hermitdave/FrequencyWords, içerik lisansı CC BY-SA 4.0). `js/data/kovan-sozluk.js` elle seçilmiş sözlüğün aynı sıklık bilgisine göre dizilmiş halidir. İkisi de CC BY-SA 4.0 altındadır.
+
 Birkaç sözcük (dna, rna, atp ve iki isim) elle eklenmiştir.
 
 ## Sesler ve Çizimler
