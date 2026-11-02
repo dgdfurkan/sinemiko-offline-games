@@ -12,36 +12,109 @@ const W = 14;
 const D = 24;
 const LEVELS = 30;
 
+// Her gün başka bir iş: yeni bir engel, yeni bir hedef. Bölümler elle kurulmuş kalıplardan gelir
+const DAYS = [
+  { n: 'İlk Gün', sheep: 5, lay: 'bos', tip: 'Köpeği koyunların arkasına geçir, ağıla doğru it.' },
+  { n: 'Dar Geçit', sheep: 6, lay: 'gecit', tip: 'Tek kapı var. Sürüyü önce kapının önüne topla.' },
+  { n: 'Ağaçlık', sheep: 7, lay: 'orman', tip: 'Ağaçlar yolu kapatır, sürü dağılır.' },
+  { n: 'İki Sürü', sheep: 8, lay: 'ikili', tip: 'Koyunlar iki ayrı köşede. Önce birini getir.' },
+  { n: 'Kara Koyun', sheep: 9, lay: 'gecit', black: 2, tip: 'Kara koyunlar inatçı. Üstlerine havla.' },
+  { n: 'Çamurlu Tarla', sheep: 9, lay: 'camur', black: 1, tip: 'Çamurda hem sen hem koyun ağırlaşır.' },
+  { n: 'Dere Kenarı', sheep: 11, lay: 'dere', black: 1, tip: 'Dereyi geçmenin tek yolu köprü.' },
+  { n: 'Zikzak Çit', sheep: 12, lay: 'zikzak', black: 2, tip: 'İki kapı ters taraflarda.' },
+  { n: 'İlk Kurt', sheep: 12, lay: 'orman', wolves: 1, black: 1, tip: 'Kurt gelince havla, kaçar.' },
+  { n: 'Rüzgarlı Gün', sheep: 13, lay: 'gecit', wind: 1, black: 2, tip: 'Rüzgar sürüyü yana savurur.' },
+  { n: 'Kuzulu Sürü', sheep: 12, lay: 'ikili', lambs: 4, tip: 'Kuzular annelerinin peşinden gider.' },
+  { n: 'Altın Koyun', sheep: 13, lay: 'camur', golden: 1, black: 2, tip: 'Altın koyun hızlı ve ürkek. Onu da içeri al.' },
+  { n: 'Kurt Sürüsü', sheep: 14, lay: 'dere', wolves: 2, black: 2, tip: 'İki kurt sırayla dener.' },
+  { n: 'Fırtına', sheep: 15, lay: 'zikzak', wind: 2, lambs: 3, tip: 'Rüzgar sık ve sert.' },
+  { n: 'Çamurda Kuzu', sheep: 15, lay: 'camur', lambs: 5, wolves: 1, tip: 'Kuzular çamurda iyice yavaşlar.' },
+  { n: 'Kalabalık', sheep: 18, lay: 'orman', black: 3, golden: 1, tip: 'Büyük sürü, dar yollar.' },
+  { n: 'Gece Yaklaşıyor', sheep: 18, lay: 'gecit', wolves: 2, wind: 1, tip: 'Süre kısa, acele et.' },
+  { n: 'Çifte Dere', sheep: 19, lay: 'cifte', black: 2, lambs: 3, tip: 'İki dere, iki köprü.' },
+  { n: 'Ada Çayırı', sheep: 19, lay: 'ada', wolves: 1, golden: 1, tip: 'Ortadaki gölün etrafından dolaş.' },
+  { n: 'Rüzgarlı Dere', sheep: 20, lay: 'dere', wind: 2, wolves: 1, black: 2, tip: 'Rüzgar köprüde işini zorlaştırır.' },
+  { n: 'Kuzu Bakıcısı', sheep: 20, lay: 'ikili', lambs: 7, wolves: 1, tip: 'Yarısı kuzu. Anneleri kaybetme.' },
+  { n: 'Labirent', sheep: 21, lay: 'labirent', black: 3, tip: 'Üç sıra çit, üç kapı.' },
+  { n: 'Aç Kurtlar', sheep: 21, lay: 'orman', wolves: 3, black: 2, tip: 'Üç kurt. Havlaman çabuk tükenir.' },
+  { n: 'Çamur Denizi', sheep: 22, lay: 'camur2', lambs: 4, wind: 1, tip: 'Çayırın yarısı çamur.' },
+  { n: 'Altın Sürü', sheep: 22, lay: 'ada', golden: 3, wolves: 2, tip: 'Üç altın koyun, hepsi ürkek.' },
+  { n: 'Dar Köprü', sheep: 23, lay: 'cifte', wolves: 2, wind: 2, lambs: 4, tip: 'Köprüler daraldı.' },
+  { n: 'Karanlık Orman', sheep: 24, lay: 'labirent', wolves: 2, black: 4, tip: 'Hem labirent hem kurt.' },
+  { n: 'Büyük Fırtına', sheep: 25, lay: 'zikzak', wind: 3, lambs: 5, wolves: 1, tip: 'Rüzgar durmadan esiyor.' },
+  { n: 'Son Çamur', sheep: 26, lay: 'camur2', wolves: 3, black: 4, golden: 1, tip: 'Her şey bir arada.' },
+  { n: 'Uzun Gün', sheep: 26, lay: 'labirent', wolves: 3, wind: 2, lambs: 6, golden: 2, tip: 'Çobanlığın sınavı.' },
+];
+const LEVEL_NAMES = DAYS.map((d) => d.n);
+
 function levelDef(i) {
+  const d = DAYS[Math.min(i, DAYS.length - 1)];
   const r = seeded(i * 13 + 5);
-  const sheep = Math.min(26, 5 + Math.floor(i * 0.7));
-  const def = { sheep, time: 55 + sheep * 3.2 + Math.min(40, i * 1.2), trees: [], walls: [], ponds: [], wolves: i >= 8 ? 1 + Math.floor((i - 8) / 9) : 0, black: i >= 4 ? 1 + Math.floor(i / 8) : 0, need: i >= 8 ? Math.ceil(sheep * 0.7) : sheep };
-  // Duvar kalıpları: geçit bırakan çitler
-  const kind = i < 2 ? 0 : i < 6 ? 1 : (i % 3) + 1;
-  const gap = 4.6 - Math.min(1.6, i * 0.05);
-  const wallAt = (z) => {
-    const c = r.range(-W / 2 + gap / 2 + 0.8, W / 2 - gap / 2 - 0.8);
-    def.walls.push([-W / 2, z, c - gap / 2, z], [c + gap / 2, z, W / 2, z]);
+  const def = {
+    name: d.n, tip: d.tip, sheep: d.sheep, lambs: d.lambs || 0, golden: d.golden || 0, black: d.black || 0,
+    wolves: d.wolves || 0, wind: d.wind || 0,
+    trees: [], walls: [], ponds: [], mud: [],
+    time: 50 + d.sheep * 3 + (d.wolves || 0) * 8 + (d.lambs || 0) * 2,
+    need: i < 4 ? d.sheep : Math.max(3, Math.ceil(d.sheep * (i < 12 ? 0.85 : 0.75))),
+    spots: [[0, D / 2 - 5, 4]],
+  };
+  const gap = Math.max(2.6, 4.4 - i * 0.05);
+  const wallAt = (z, g = gap, cx = null) => {
+    const c = cx === null ? r.range(-W / 2 + g / 2 + 0.9, W / 2 - g / 2 - 0.9) : cx;
+    def.walls.push([-W / 2, z, c - g / 2, z], [c + g / 2, z, W / 2, z]);
     return c;
   };
-  if (kind === 1) wallAt(1);
-  if (kind === 2) {
-    const a = wallAt(4);
-    // İkinci geçit öbür tarafta: zikzak
-    const c = a > 0 ? -W / 4 : W / 4;
-    def.walls.push([-W / 2, -2, c - gap / 2, -2], [c + gap / 2, -2, W / 2, -2]);
-  }
-  if (kind === 3) {
-    wallAt(2.5);
-    def.ponds.push([r.range(-3, 3), 7, r.range(1.3, 2)]);
-  }
-  const nTrees = Math.min(9, 2 + Math.floor(i / 3));
-  for (let k = 0; k < nTrees; k++) {
-    const x = r.range(-W / 2 + 1, W / 2 - 1);
-    const z = r.range(-D / 2 + 7, D / 2 - 5);
-    // Çitlerin geçitlerini tıkamasın
-    const near = def.walls.some(([x1, z1, x2]) => Math.abs(z - z1) < 1.8 && (x < x1 - 0.2 || x > x2 + 0.2));
-    if (!near) def.trees.push([x, z, r.range(0.8, 1.2)]);
+  const river = (z, bridge = 3.2) => {
+    const c = r.range(-3.5, 3.5);
+    for (let x = -W / 2; x < W / 2; x += 1.1) {
+      if (Math.abs(x - c) < bridge / 2) continue;
+      def.ponds.push([x, z + r.range(-0.2, 0.2), 0.85]);
+    }
+    return c;
+  };
+  const trees = (n) => {
+    for (let k = 0; k < n; k++) {
+      const x = r.range(-W / 2 + 1, W / 2 - 1);
+      const z = r.range(-D / 2 + 7, D / 2 - 5);
+      const nearWall = def.walls.some(([x1, z1, x2]) => Math.abs(z - z1) < 1.9 && (x < x1 - 0.3 || x > x2 + 0.3));
+      const nearPond = def.ponds.some(([px, pz, pr]) => Math.hypot(x - px, z - pz) < pr + 1.4);
+      if (!nearWall && !nearPond) def.trees.push([x, z, r.range(0.8, 1.2)]);
+    }
+  };
+  const mud = (n, size = 2.4) => {
+    for (let k = 0; k < n; k++) def.mud.push([r.range(-W / 2 + 1.5, W / 2 - 1.5), r.range(-D / 2 + 7, D / 2 - 4), r.range(size * 0.7, size)]);
+  };
+  switch (d.lay) {
+    case 'gecit': wallAt(1); trees(3); break;
+    case 'orman': trees(10); wallAt(-3, gap + 0.6); break;
+    case 'ikili':
+      def.spots = [[-W / 2 + 3, D / 2 - 5, 2.2], [W / 2 - 3, 2, 2.2]];
+      wallAt(-1);
+      trees(5);
+      break;
+    case 'camur': wallAt(0); mud(3); trees(4); break;
+    case 'camur2': mud(6, 3); wallAt(-2); trees(3); break;
+    case 'dere': river(2); trees(5); break;
+    case 'cifte': river(5, 2.8); river(-3, 2.8); trees(3); break;
+    case 'zikzak': {
+      const a = wallAt(4);
+      wallAt(-2, gap, a > 0 ? -W / 4 : W / 4);
+      trees(4);
+      break;
+    }
+    case 'ada':
+      def.ponds.push([0, 2, 3.4]);
+      def.spots = [[-W / 2 + 3, D / 2 - 5, 2], [W / 2 - 3, D / 2 - 5, 2]];
+      trees(6);
+      mud(2);
+      break;
+    case 'labirent':
+      wallAt(6, gap);
+      wallAt(1, gap);
+      wallAt(-4, gap);
+      trees(3);
+      break;
+    default: trees(2);
   }
   return def;
 }
@@ -92,16 +165,23 @@ export function mount(root, api) {
     local = new Life();
     const my = local;
     const def = levelDef(li);
-    f.setTitle(`${li + 1}. Gün`);
+    f.setTitle(`${li + 1}. Gün: ${def.name}`);
     f.main.innerHTML = toHTML(html`
       <div class="ky">
         <canvas class="ky-cv"></canvas>
-        <div class="ky-hud"><span class="ky-chip"><b data-in>0</b> / ${def.need}</span><span class="ky-sun"><i data-sun></i></span></div>
+        <div class="ky-hud">
+          <span class="ky-chip"><b data-in>0</b> / ${def.need}</span>
+          ${def.lambs ? html`<span class="ky-tag">${def.lambs} kuzu</span>` : ''}
+          ${def.golden ? html`<span class="ky-tag gold">${def.golden} altın</span>` : ''}
+          ${def.wolves ? html`<span class="ky-tag wolf">${def.wolves} kurt</span>` : ''}
+          <span class="ky-sun"><i data-sun></i></span>
+        </div>
+        <div class="ky-wind" data-wind><i></i><i></i><i></i></div>
         <button class="btn btn-main ky-bark" data-bark>Hav!</button>
-        <div class="ky-hint" data-hint>Parmağını sürünün arkasında gezdir</div>
+        <div class="ky-hint" data-hint>${def.tip}</div>
       </div>`);
     const main = f.main.firstElementChild;
-    const game = { li, def, t: def.time, inPen: 0, lost: 0, over: false, paused: false, barkCd: 0, target: null, sheep: [], wolves: [], dog: { x: 0, z: D / 2 - 1.5, a: Math.PI, moving: 0 }, flash: 0 };
+    const game = { li, def, t: def.time, inPen: 0, lost: 0, over: false, paused: false, barkCd: 0, gust: 0, gustT: 6, gustX: 0, gustZ: 0, goldIn: 0, target: null, sheep: [], wolves: [], dog: { x: 0, z: D / 2 - 1.5, a: Math.PI, moving: 0 }, flash: 0 };
     st = game;
     f.onBack = () => {
       game.paused = true;
@@ -245,6 +325,17 @@ export function mount(root, api) {
       scene.add(edge, p);
     }
 
+    // Çamur: içinden geçilir ama ayak ağırlaşır
+    for (const [x, z, r] of def.mud) {
+      const m = new THREE.Mesh(new THREE.CircleGeometry(r, 18), toon(THREE, 0x6b4a2a));
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, 0.022, z);
+      const e = new THREE.Mesh(new THREE.RingGeometry(r, r + 0.12, 18), new THREE.MeshBasicMaterial({ color: 0x3e2a18 }));
+      e.rotation.x = -Math.PI / 2;
+      e.position.set(x, 0.023, z);
+      scene.add(m, e);
+    }
+
     // Koyunlar: örnekli çizim, 26 koyun birkaç çizim çağrısı
     const wool = mergeGeos(THREE, [
       shaped(THREE, new THREE.SphereGeometry(0.42, 8, 6), { y: 0.55, sx: 1.15, sy: 0.95, sz: 1 }),
@@ -269,8 +360,15 @@ export function mount(root, api) {
     scene.add(woolI, legsM, woolM, headM, eyesM);
     for (let k = 0; k < N; k++) {
       const black = k < def.black;
-      woolM.setColorAt(k, tmpC.setHex(black ? 0x4a3f55 : 0xfffdf6));
-      game.sheep.push({ x: rand(-W / 2 + 2, W / 2 - 2), z: rand(D / 2 - 7, D / 2 - 3), vx: 0, vz: 0, a: rand(0, 6), ph: rand(0, 6), graze: 0, home: false, dead: false, black, scare: 0, hop: 0 });
+      const golden = !black && k >= N - def.golden;
+      const lamb = !black && !golden && k >= N - def.golden - def.lambs;
+      woolM.setColorAt(k, tmpC.setHex(golden ? 0xffcd3c : black ? 0x4a3f55 : 0xfffdf6));
+      const [sx, sz, sr] = def.spots[k % def.spots.length];
+      game.sheep.push({
+        x: clamp(sx + rand(-sr, sr), -W / 2 + 1, W / 2 - 1), z: clamp(sz + rand(-sr, sr), -D / 2 + 1, D / 2 - 1),
+        vx: 0, vz: 0, a: rand(0, 6), ph: rand(0, 6), graze: 0, home: false, dead: false,
+        black, golden, lamb, size: lamb ? 0.62 : golden ? 1.05 : 1, scare: 0, hop: 0,
+      });
     }
     // Köpek
     const dogG = new THREE.Group();
@@ -354,6 +452,7 @@ export function mount(root, api) {
     my.on(barkBtn, 'click', bark);
     game.bark = bark;
 
+    const inMud = (o) => def.mud.some(([x, z, r]) => Math.hypot(o.x - x, o.z - z) < r);
     const collide = (o, r) => {
       for (const w of walls) {
         const { nx, nz, d } = segNear(o.x, o.z, w[0], w[1], w[2], w[3]);
@@ -388,6 +487,7 @@ export function mount(root, api) {
     };
     const inPenBox = (s) => s.x > PEN.x0 && s.x < PEN.x1 && s.z > PEN.z0 && s.z < PEN.z1 - 0.2;
     const inEl = main.querySelector('[data-in]');
+    const windEl = main.querySelector('[data-wind]');
     const sunEl = main.querySelector('[data-sun]');
     const finish = () => {
       if (game.over) return;
@@ -400,15 +500,15 @@ export function mount(root, api) {
       if (stars > prev) data.stars[li] = stars;
       data.herded += game.inPen;
       api.touch();
-      const coins = won ? 8 + stars * 7 + Math.floor(li / 2) : 3;
+      const coins = won ? 8 + stars * 7 + Math.floor(li / 2) + game.goldIn * 10 : 3;
       api.finish({ coins });
       resultSheet({
         won,
-        title: won ? 'Sürü Evde' : 'Hava Karardı',
+        title: won ? `${def.name}: Sürü Evde` : 'Hava Karardı',
         sub: won ? (game.lost ? `${game.lost} koyun kurda gitti ama olsun.` : 'Hiç koyun kaybetmedin.') : `${def.need} koyun gerekiyordu, ${game.inPen} tanesi içeri girdi.`,
         stars,
         coins,
-        stats: [['Ağıldaki Koyun', `${game.inPen} / ${def.sheep}`], ['Kalan Gün Işığı', `${Math.round(k * 100)}%`.replace(/(\d+)%/, '%$1')]],
+        stats: [['Ağıldaki Koyun', `${game.inPen} / ${def.sheep}`], ...(def.golden ? [['Altın Koyun', `${game.goldIn} / ${def.golden}`]] : []), ['Kalan Gün Işığı', `%${Math.round(k * 100)}`]],
         buttons: [
           ...(won && li + 1 < LEVELS ? [{ label: 'Sonraki Gün', main: true, icon: 'arrow', act: () => play(li + 1) }] : []),
           { label: 'Tekrar', main: !won, icon: 'replay', act: () => play(li) },
@@ -426,6 +526,24 @@ export function mount(root, api) {
       }
       game.barkCd = Math.max(0, game.barkCd - dt);
       barkBtn.disabled = game.barkCd > 0;
+      // Rüzgar: önce uyarı, sonra birkaç saniye savuruş
+      if (def.wind) {
+        game.gustT -= dt;
+        if (game.gust > 0) {
+          game.gust -= dt;
+          if (game.gust <= 0) windEl.classList.remove('on');
+        } else if (game.gustT <= 0) {
+          game.gustT = Math.max(7, 18 - def.wind * 4) + rand(0, 5);
+          game.gust = 1.6 + def.wind * 0.5;
+          const a = rand(0, Math.PI * 2);
+          game.gustX = Math.cos(a);
+          game.gustZ = Math.sin(a);
+          windEl.classList.add('on');
+          windEl.style.setProperty('--deg', `${(a * 180) / Math.PI}deg`);
+          sfx.whoosh();
+          buzz(18);
+        }
+      }
       // Köpek hedefe koşar
       const dog = game.dog;
       let dogSp = 0;
@@ -434,7 +552,7 @@ export function mount(root, api) {
         const dz = game.target.z - dog.z;
         const d = Math.hypot(dx, dz);
         if (d > 0.2) {
-          const sp = Math.min(d * 5, 8);
+          const sp = Math.min(d * 5, 8) * (inMud(dog) ? 0.5 : 1);
           dog.x += (dx / d) * sp * dt;
           dog.z += (dz / d) * sp * dt;
           dog.a = Math.atan2(dz, dx);
@@ -492,7 +610,7 @@ export function mount(root, api) {
         let fleeing = false;
         const R = 4.4;
         if (dd < R) {
-          const k = (1 - dd / R) * 14;
+          const k = (1 - dd / R) * 14 * (s.golden ? 1.3 : 1);
           ax += (ddx / dd) * k;
           az += (ddz / dd) * k;
           fleeing = true;
@@ -537,10 +655,31 @@ export function mount(root, api) {
           ax += s.wx * 0.8;
           az += s.wz * 0.8;
         }
+        // Kuzu en yakın büyük koyuna yapışır
+        if (s.lamb) {
+          let mum = null;
+          let md = 99;
+          for (const o of game.sheep) {
+            if (o === s || o.lamb || o.home || o.dead) continue;
+            const d = Math.hypot(o.x - s.x, o.z - s.z);
+            if (d < md) { md = d; mum = o; }
+          }
+          if (mum && md > 1.2) {
+            ax += ((mum.x - s.x) / md) * 4.5;
+            az += ((mum.z - s.z) / md) * 4.5;
+          }
+        }
+        if (game.gust > 0) {
+          ax += game.gustX * 6.5;
+          az += game.gustZ * 6.5;
+        }
         s.vx += ax * dt;
         s.vz += az * dt;
         const near = Math.hypot(s.x, s.z - PEN.z1) < 6.5;
-        const max = fleeing ? (s.scare > 0 ? 5.2 : 4.2) : near ? 2 : 0.7;
+        let max = fleeing ? (s.scare > 0 ? 5.2 : 4.2) : near ? 2 : 0.7;
+        if (s.golden) max *= 1.35;
+        if (s.lamb) max *= 0.82;
+        if (inMud(s)) max *= 0.45;
         const v = Math.hypot(s.vx, s.vz);
         if (v > max) {
           s.vx = (s.vx / v) * max;
@@ -553,6 +692,7 @@ export function mount(root, api) {
         collide(s, 0.45);
         if (inPenBox(s)) {
           s.home = true;
+          if (s.golden) game.goldIn++;
           s.hop = 1;
           game.inPen++;
           inEl.textContent = game.inPen;

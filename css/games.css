@@ -153,6 +153,15 @@ body[data-theme="koyun"] { --bg: linear-gradient(180deg, #9fdcff, #7cc95a 55%, #
 }
 
 /* ---------- Takı Atölyesi: kadife ve altın ---------- */
+.ky-tag { padding: 0.125rem 0.5rem; background: rgba(42,22,54,.72); border: 0.125rem solid #fff; border-radius: 62.4375rem; color: #fff; font: 800 0.6875rem/1.5 'Baloo 2', sans-serif; }
+.ky-tag.gold { background: #ffcd3c; color: #2a1636; border-color: #2a1636; }
+.ky-tag.wolf { background: #6f7388; }
+.ky-wind { position: absolute; left: 0; right: 0; top: 38%; display: flex; flex-direction: column; gap: 0.625rem; align-items: center; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.ky-wind.on { opacity: 1; }
+.ky-wind i { display: block; width: 46%; height: 0.3125rem; border-radius: 62.4375rem; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85)); transform: rotate(var(--deg, 0deg)); animation: kyWind .7s linear infinite; }
+.ky-wind i:nth-child(2) { width: 62%; animation-delay: .12s; }
+.ky-wind i:nth-child(3) { width: 38%; animation-delay: .24s; }
+@keyframes kyWind { from { transform: rotate(var(--deg, 0deg)) translateX(-30%); opacity: 0; } 40% { opacity: 1; } to { transform: rotate(var(--deg, 0deg)) translateX(40%); opacity: 0; } }
 body[data-theme="taki"] { --bg: radial-gradient(circle at 50% 20%, #6a2f7f, #2b1036 75%); --accent: #c9a23a; --accent-d: #9a7a1c; --accent-ink: #2a1636; --title-font: 'Playfair Display', serif; }
 .g-taki .g-title { font-weight: 700; font-size: 1.375rem; }
 .g-taki .sh-title { font-weight: 700; color: #7a3f8f; }
@@ -538,3 +547,21 @@ body[data-theme="bulmaca"] .g-title { font-size: 1.25rem; color: #2a1636; }
   .bm-kb { grid-column: 1; grid-row: 3; }
   .bm-k { height: 2.75rem; font-size: 1.25rem; }
 }
+
+/* ---------- Mitoz Fırtınası ---------- */
+body[data-theme="mitoz"] { --bg: #07202c; --accent: #2aa88a; --accent-d: #17796a; --title-font: 'Nunito', sans-serif; --body-font: 'Nunito', sans-serif; }
+body[data-theme="mitoz"] .g-title { font-weight: 800; }
+.mz { position: absolute; inset: 0; overflow: hidden; touch-action: none; }
+.mz-cv { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mz-top { position: absolute; left: 0.5rem; right: 0.5rem; top: 0.375rem; display: flex; gap: 0.4375rem; pointer-events: none; }
+.mz-goal { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.0625rem; padding: 0.1875rem 0.6875rem 0.3125rem; background: rgba(7,32,44,.76); border: 0.1562rem solid #2aa88a; border-radius: 0.9375rem; color: #d8fff6; }
+.mz-goal small { font: 800 0.5938rem/1 'Nunito', sans-serif; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
+.mz-goal b { font: 800 0.9375rem/1.1 'Nunito', sans-serif;  white-space: nowrap; }
+.mz-goal i { display: block; height: 0.4375rem; margin-top: 0.1875rem; background: rgba(255,255,255,.14); border-radius: 62.4375rem; overflow: hidden; }
+.mz-goal u { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #7fe7c4, #ffcd3c); text-decoration: none; transition: width .25s; }
+.mz-taps { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 3.875rem; padding: 0.125rem 0.625rem; background: #ffcd3c; border: 0.1562rem solid #07202c; border-radius: 0.9375rem; color: #07202c; }
+.mz-taps b { font: 800 1.25rem/1 'Nunito', sans-serif; }
+.mz-taps small { font: 800 0.5938rem/1 'Nunito', sans-serif; opacity: .72; }
+.mz-chain { position: absolute; left: 50%; top: 42%; transform: translate(-50%, 0) scale(.6); opacity: 0; color: #fff; font: 800 calc(1.25rem + var(--k, 0) * 1.375rem)/1 'Nunito', sans-serif; text-shadow: 0 0.1875rem 0 #07202c, 0 0 1.625rem rgba(127,231,196,.8); pointer-events: none; transition: opacity .15s; }
+.mz-chain.on { opacity: 1; animation: mzChain .34s cubic-bezier(.3,1.5,.5,1); }
+@keyframes mzChain { from { transform: translate(-50%, 0.625rem) scale(.7); } to { transform: translate(-50%, 0) scale(1); } }

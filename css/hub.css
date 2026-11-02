@@ -175,3 +175,7 @@
 .tk-move .ic { width: 0.9375rem; height: 0.9375rem; }
 .tk-move button[data-dir="-1"] .ic { transform: rotate(-90deg); }
 .tk-move button[data-dir="1"] .ic { transform: rotate(90deg); }
+.a-pulse { animation: artPulse 1.6s ease-in-out infinite; }
+@keyframes artPulse { 50% { transform: scale(1.18); } }
+.a-bit { animation: artBit 1.6s ease-in-out infinite; }
+@keyframes artBit { 0% { transform: scale(.2); opacity: 0; } 40% { opacity: 1; } 100% { transform: scale(1); opacity: .2; } }

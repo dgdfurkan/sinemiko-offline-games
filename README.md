@@ -17,9 +17,10 @@ Sinem için internetsiz oyun koleksiyonu. Telefona ya da tablete bir kere ana ek
 | Nano Yolculuk | Lab | Damarın içinde uç, oksijen topla, pıhtıdan kaç |
 | Antikor Atışı | Lab | Fırlatıcıyı ger, mikropları yık |
 | Petri Kabı | Lab | Hücreleri birleştir, atomdan canlıya çık |
+| Mitoz Fırtınası | Lab | Bir hücreye dokun, zincirleme bölünme başlasın |
 | Harf Kovanı | Kelime | Petekten kelime çıkar, kovanı balla doldur |
 | Biyo Bulmaca | Kelime | Laboratuvar terimlerinden kare bulmaca |
-| Bee Koyun | Fizik | Köpekle sürüyü ağıla götür |
+| Bee Koyun | Fizik | Köpekle sürüyü ağıla götür, her gün başka bir engel |
 | Çiz Geç | Fizik | Tebeşirle çiz, çizdiğin düşsün, topu kalbe ulaştır |
 | Atari Salonu | Eski tip | DNA Yılanı, Hücre Kırıcı, Virüs İstilası |
 | Kahvehane | Eski tip | Furkan'a karşı tavla ve pişti |
