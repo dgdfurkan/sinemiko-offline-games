@@ -151,7 +151,11 @@ export const sfx = {
     tone({ type: 'square', f: 900, f2: 120, dur: 0.12, vol: 0.04, attack: 0.002 });
   },
   sizzle(d = 0.25) { hiss({ dur: d, vol: 0.05, type: 'highpass', f: 4200, q: 0.4, attack: 0.01 }); },
-  slice() { hiss({ dur: 0.1, vol: 0.14, f: 2400, f2: 5200, q: 2, attack: 0.004 }); },
+  slice(power = 1) {
+    const p = Math.max(0.4, Math.min(2.4, power));
+    hiss({ dur: 0.06 + 0.05 / p, vol: 0.1 + p * 0.05, f: 1800 + p * 900, f2: 4200 + p * 1800, q: 2, attack: 0.003 });
+    tone({ type: 'triangle', f: 240 * p, f2: 90, dur: 0.05, vol: 0.05, attack: 0.001 });
+  },
   chop() {
     tone({ type: 'square', f: 300, f2: 110, dur: 0.05, vol: 0.09, attack: 0.001 });
     hiss({ dur: 0.05, vol: 0.1, f: 1800, q: 1, attack: 0.001 });

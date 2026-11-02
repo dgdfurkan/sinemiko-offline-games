@@ -1,7 +1,7 @@
 // Çevrimdışı kalkan: ilk açılışta bütün oyun dosyaları telefona iner, sonra internet hiç gerekmez.
 // Bu dosya tools/build.py ile üretilir, elle değiştirme.
 
-const VERSION = '6d4b11b5d9ec';
+const VERSION = 'ca8c12bca271';
 const CACHE = `sinemiko-yolda-${VERSION}`;
 const ASSETS = [
   "./",
@@ -53,16 +53,21 @@ const ASSETS = [
   "js/core/dom.js",
   "js/core/fx.js",
   "js/core/music.js",
+  "js/core/perf.js",
   "js/core/save.js",
   "js/core/three-kit.js",
   "js/core/ui.js",
   "js/data/questions.js",
+  "js/games/antikor.js",
+  "js/games/ciz.js",
   "js/games/dondurma.js",
   "js/games/doner.js",
   "js/games/fetih.js",
   "js/games/gen.js",
   "js/games/kafe.js",
+  "js/games/kovan.js",
   "js/games/koyun.js",
+  "js/games/nano.js",
   "js/games/petri.js",
   "js/games/taki.js",
   "js/hub.js",

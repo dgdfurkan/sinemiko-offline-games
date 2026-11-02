@@ -1,5 +1,7 @@
 // DOM ve zamanlama yardımcıları
 
+import { perf } from './perf.js';
+
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ESC[c]);
 
@@ -127,7 +129,7 @@ export function fitCanvas(canvas, life, onResize, dprCap = 2) {
   const resize = () => {
     const r = canvas.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    size.dpr = Math.min(dprCap, window.devicePixelRatio || 1);
+    size.dpr = Math.min(dprCap, perf.light ? 1.35 : 9, window.devicePixelRatio || 1);
     size.W = r.width;
     size.H = r.height;
     canvas.width = Math.round(r.width * size.dpr);
@@ -139,6 +141,7 @@ export function fitCanvas(canvas, life, onResize, dprCap = 2) {
   const ro = new ResizeObserver(resize);
   ro.observe(canvas);
   life.add(() => ro.disconnect());
+  life.add(perf.onChange(resize));
   size.begin = () => {
     g.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
     g.clearRect(0, 0, size.W, size.H);

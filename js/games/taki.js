@@ -299,14 +299,19 @@ export function mount(root, api) {
       const nodes = [];
       const segs = 26;
       if (kind === 'kolye') {
-        const x0 = W * 0.2;
-        const x1 = W * 0.8;
+        const x0 = W * (W < H ? 0.16 : 0.24);
+        const x1 = W - x0;
         const y0 = H * 0.1;
+        const span = x1 - x0;
+        // Zincir boyu çizilen yaydan ölçülür: ne ekrandan taşar ne de kova gibi düzleşir
+        const sag = Math.min(H * 0.62 - y0, span * 1.15);
         for (let k = 0; k <= segs; k++) {
           const t = k / segs;
-          nodes.push({ x: x0 + (x1 - x0) * t, y: y0 + Math.sin(t * Math.PI) * H * 0.4, px: 0, py: 0, pin: k === 0 || k === segs });
+          nodes.push({ x: x0 + span * t, y: y0 + Math.sin(t * Math.PI) * sag, px: 0, py: 0, pin: k === 0 || k === segs });
         }
-        game.rest = (Math.hypot(x1 - x0, H * 0.82) * 1.0) / segs;
+        let len = 0;
+        for (let k = 1; k < nodes.length; k++) len += Math.hypot(nodes[k].x - nodes[k - 1].x, nodes[k].y - nodes[k - 1].y);
+        game.rest = len / segs;
         game.pins = [[x0, y0], [x1, y0]];
       } else if (kind === 'bileklik') {
         const cx = W / 2;
@@ -323,7 +328,7 @@ export function mount(root, api) {
         // Küpe: iki kısa sarkaç; biri öbürünün aynısı
         const x = W * 0.3;
         const y0 = H * 0.14;
-        const L = H * 0.68;
+        const L = Math.min(H * 0.6, H - y0 - Math.min(W, H) * 0.16);
         for (let k = 0; k <= segs; k++) nodes.push({ x, y: y0 + (k / segs) * L, px: 0, py: 0, pin: k === 0 });
         game.rest = L / segs;
         game.pins = [[x, y0], [W * 0.7, y0]];
@@ -530,8 +535,8 @@ export function mount(root, api) {
       const d2 = dt * dt;
       for (const n of N) {
         if (n.pin) continue;
-        const vx = (n.x - n.px) * 0.985;
-        const vy = (n.y - n.py) * 0.985;
+        const vx = (n.x - n.px) * 0.965;
+        const vy = (n.y - n.py) * 0.965;
         n.px = n.x;
         n.py = n.y;
         n.x += vx;
@@ -552,6 +557,16 @@ export function mount(root, api) {
           a.y += dy * diff * ka;
           b.x -= dx * diff * kb;
           b.y -= dy * diff * kb;
+        }
+        // Kenar sınırı: boncuk ekran dışına kaçmasın, kaçarsa hızı da sönsün
+        const pad = beadR() * 1.15;
+        const bottom = s.H - pad;
+        for (const n of N) {
+          if (n.pin) continue;
+          const cx = clamp(n.x, pad, s.W - pad);
+          const cy = Math.min(n.y, bottom);
+          if (cx !== n.x) { n.x = cx; n.px = cx; }
+          if (cy !== n.y) { n.y = cy; n.py = cy; }
         }
       }
     };

@@ -151,3 +151,27 @@
   .hub-main { grid-column: 2; grid-row: 1 / span 2; padding-top: calc(0.625rem + var(--sat)); }
   .hub-nav { grid-column: 1; grid-row: 2; border-top: 0; margin: 0 0 calc(0.375rem + var(--sab)) 0.75rem; border: 0.1875rem solid var(--ink); border-radius: 1rem; padding-bottom: 0.375rem; }
 }
+.gm-bar { display: flex; gap: 0.5rem; align-items: center; margin: 0.125rem 0 0.5rem; }
+.gm-seg { display: flex; flex: 1; min-width: 0; padding: 0.1875rem; background: rgba(255,255,255,.1); border: 0.1562rem solid var(--ink); border-radius: 62.4375rem; }
+.gm-seg button { flex: 1; padding: 0.3125rem 0.5rem; border-radius: 62.4375rem; color: #fff; font: 400 0.8125rem/1 'Paytone One', sans-serif; }
+.gm-seg button.on { background: #ffe27a; color: var(--ink); }
+.gm-edit { display: flex; align-items: center; gap: 0.3125rem; padding: 0.4375rem 0.75rem; background: #fff; border: 0.1562rem solid var(--ink); border-radius: 62.4375rem; box-shadow: 0 0.1875rem 0 var(--ink); color: var(--ink); font: 400 0.8125rem/1 'Paytone One', sans-serif; }
+.gm-edit.on { background: #2ee6a0; }
+.gm-edit:active { transform: translateY(0.125rem); box-shadow: 0 0.0625rem 0 var(--ink); }
+.gm-edit .ic { width: 1rem; height: 1rem; }
+.gm-tip { margin: -0.25rem 0 0.5rem; font-size: 0.8125rem; line-height: 1.25; color: #ffe27a; }
+.grp-title .ic { width: 1rem; height: 1rem; vertical-align: -0.125rem; margin-right: 0.25rem; fill: #ffcd3c; }
+.tk-wrap { position: relative; display: flex; }
+.tk-wrap .ticket { flex: 1; min-width: 0; }
+.tk-fav { position: absolute; left: -0.125rem; top: -0.25rem; display: none; place-items: center; width: 1.875rem; height: 1.875rem; background: #fff; border: 0.1562rem solid var(--ink); border-radius: 50%; box-shadow: 0 0.125rem 0 var(--ink); color: #c9bedb; z-index: 2; }
+.tk-fav .ic { width: 1rem; height: 1rem; }
+.tk-fav.on { background: #ffe27a; color: #e2a010; }
+.tk-fav.on .ic { fill: #ffcd3c; }
+.tk-wrap.editing .tk-fav, .tk-fav.on { display: grid; }
+.tk-wrap.editing .ticket { opacity: .92; }
+.tk-move { position: absolute; right: -0.125rem; bottom: -0.25rem; display: flex; gap: 0.1875rem; z-index: 2; }
+.tk-move button { display: grid; place-items: center; width: 1.875rem; height: 1.875rem; background: #fff; border: 0.1562rem solid var(--ink); border-radius: 50%; box-shadow: 0 0.125rem 0 var(--ink); color: var(--ink); }
+.tk-move button:disabled { opacity: .35; }
+.tk-move .ic { width: 0.9375rem; height: 0.9375rem; }
+.tk-move button[data-dir="-1"] .ic { transform: rotate(-90deg); }
+.tk-move button[data-dir="1"] .ic { transform: rotate(90deg); }

@@ -1,6 +1,7 @@
 // 3B oyunların ortak parçaları: three.js yalnızca gerektiğinde yüklenir. Çizgi film ışığı, konturlu nesneler
 
 import { save } from './save.js';
+import { perf } from './perf.js';
 
 let mod = null;
 export async function loadThree() {
@@ -10,7 +11,7 @@ export async function loadThree() {
 
 export function makeRenderer(THREE, canvas, life, { dprCap = 2, clear = 0x000000, alpha = false, antialias = true } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias, alpha, powerPreference: 'high-performance' });
-  const cap = save.get('eco') ? 1 : dprCap;
+  const cap = perf.light ? 1 : dprCap;
   renderer.setPixelRatio(Math.min(cap, window.devicePixelRatio || 1));
   if (!alpha) renderer.setClearColor(clear, 1);
   else renderer.setClearColor(0x000000, 0);
@@ -75,10 +76,9 @@ export function disposeScene(scene) {
 
 // Pil dostu modda kare atlama
 export function frameGate() {
-  const eco = save.get('eco');
   let skip = false;
   return () => {
-    if (!eco) return true;
+    if (!perf.light) return true;
     skip = !skip;
     return !skip;
   };

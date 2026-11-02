@@ -462,11 +462,12 @@ export function mount(root, api) {
     const stripGeo = new THREE.BoxGeometry(0.34, 0.09, 0.06);
     const stripMat = toon(THREE, 0xa8602c);
     const strips = [];
-    const hit = (burnt) => {
-      for (let k = 0; k < 4; k++) {
+    const hit = (burnt, power = 1) => {
+      const n = burnt ? 4 : 5 + Math.round(power * 3);
+      for (let k = 0; k < n; k++) {
         const m = new THREE.Mesh(stripGeo, burnt ? toon(THREE, 0x2a1a12) : stripMat);
-        m.position.set(knife.position.x - 0.5 + rand(-0.2, 0.2), knife.position.y, 1);
-        m.userData = { vy: rand(-0.5, 0.5), vx: rand(0.1, 1.2), r: rand(-6, 6) };
+        m.position.set(knife.position.x - 0.5 + rand(-0.2, 0.2), knife.position.y + rand(-0.12, 0.12), 1);
+        m.userData = { vy: rand(-0.4, 0.3) - power * 0.5, vx: rand(0.2, 0.9) + power * 0.5, r: rand(-7, 7) * power };
         scene.add(m);
         strips.push(m);
       }
@@ -475,26 +476,56 @@ export function mount(root, api) {
     // Kesim: dönerin üstünde parmağı aşağı çekmek
     const hintEl = main.querySelector('[data-hint]');
     let lastY = 0;
-    let travel = 0;
+    let lastT = 0;
     let knifeY = 1.4;
     let pressing = false;
+    let armed = true;
+    let coneShock = 0;
+    let cutSpeed = 1;
+    // Et bandı: parmak bu çizgiyi aşağı doğru geçtiği anda bıçak eti alır
+    const bandY = () => coneEl.clientHeight * 0.5;
+    const armY = () => coneEl.clientHeight * 0.34;
     drag(coneEl, local, {
-      down: (p) => { lastY = p.y; travel = 0; pressing = true; },
-      move: (p) => {
-        const dy = p.y - lastY;
+      down: (p) => {
         lastY = p.y;
-        if (dy > 0) travel += dy;
-        knifeY = clamp(1.5 - (p.y / size.H) * 3.2, -1.2, 1.6);
-        if (travel >= 46) {
-          travel = 0;
-          slice();
-        }
+        lastT = performance.now();
+        pressing = true;
+        armed = p.y < bandY();
+        knifeY = clamp(1.5 - (p.y / coneEl.clientHeight) * 3.2, -1.2, 1.6);
       },
-      up: () => { pressing = false; },
+      move: (p) => {
+        const now = performance.now();
+        const dy = p.y - lastY;
+        const ms = Math.max(8, now - lastT);
+        knifeY = clamp(1.5 - (p.y / coneEl.clientHeight) * 3.2, -1.2, 1.6);
+        const band = bandY();
+        if (!armed && p.y < armY()) armed = true;
+        if (armed && dy > 0 && lastY <= band && p.y > band) {
+          armed = false;
+          cutSpeed = clamp((dy / ms) * 0.6, 0.5, 2.4);
+          slice(p);
+        }
+        lastY = p.y;
+        lastT = now;
+      },
+      up: () => { pressing = false; armed = true; },
     });
+    // Kesik izi: bıçağın geçtiği yerde bir anlık parıltı
+    const slash = (p) => {
+      const n = document.createElement('i');
+      n.className = 'dn-slash';
+      n.style.top = `${(p ? p.y : bandY()) - 3}px`;
+      coneEl.append(n);
+      n.animate([
+        { transform: 'scaleX(.2) translateX(-30%)', opacity: 0 },
+        { transform: 'scaleX(1) translateX(0)', opacity: 1, offset: 0.25 },
+        { transform: 'scaleX(1.06) translateX(14%)', opacity: 0 },
+      ], { duration: 240, easing: 'cubic-bezier(.2,.9,.3,1)' }).finished.then(() => n.remove(), () => n.remove());
+    };
     const zone = () => ({ lo: 0.52, hi: 0.95 + up('fire') * 0.09 });
-    const slice = () => {
+    const slice = (p = null) => {
       if (game.paused || game.over) return;
+      coneShock = 1;
       const z = zone();
       const c = game.cook;
       hintEl.style.opacity = 0;
@@ -514,7 +545,8 @@ export function mount(root, api) {
         sfx.sizzle(0.4);
         sfx.bad();
         floatText('Yandı!', '#ffb45a');
-        hit(true);
+        hit(true, cutSpeed);
+        slash(p);
         buzz(30);
       } else {
         const n = 1 + (up('blade') > 0 && Math.random() < 0.35 * up('blade') ? 1 : 0);
@@ -522,10 +554,11 @@ export function mount(root, api) {
         game.cook = Math.max(0, c - 0.3);
         game.perfect++;
         game.sliced++;
-        sfx.slice();
-        sfx.sizzle(0.15);
-        hit(false);
-        buzz(12);
+        sfx.slice(cutSpeed);
+        sfx.sizzle(0.12 + cutSpeed * 0.06);
+        hit(false, cutSpeed);
+        buzz(10 + Math.round(cutSpeed * 8));
+        slash(p);
         pop(main.querySelector('.dn-tray'), 1.06);
         renderTray();
       }
@@ -597,7 +630,17 @@ export function mount(root, api) {
       coneMat.color.setRGB(col[0] / 255, col[1] / 255, col[2] / 255, THREE.SRGBColorSpace);
       spit.rotation.y += dt * 1.1;
       heater.material.opacity = 0.45 + Math.sin(t / 130) * 0.08;
-      knife.position.y += ((pressing ? knifeY : 1.4) - knife.position.y) * Math.min(1, dt * 18);
+      knife.position.y += ((pressing ? knifeY : 1.4) - knife.position.y) * Math.min(1, dt * (pressing ? 46 : 14));
+      knife.rotation.z = -0.25 - clamp((knifeY - knife.position.y) * 0.5, -0.35, 0.35);
+      if (coneShock > 0) {
+        coneShock = Math.max(0, coneShock - dt * 4.5);
+        const k = coneShock * coneShock;
+        cone.position.x = Math.sin(t / 22) * 0.06 * k;
+        cone.rotation.z = Math.sin(t / 26) * 0.05 * k;
+      } else if (cone.position.x) {
+        cone.position.x = 0;
+        cone.rotation.z = 0;
+      }
       for (let k = strips.length - 1; k >= 0; k--) {
         const m = strips[k];
         m.userData.vy -= 9 * dt;

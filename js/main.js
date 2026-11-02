@@ -2,6 +2,7 @@
 
 import { Life } from './core/dom.js';
 import { save } from './core/save.js';
+import { perf } from './core/perf.js';
 import { bindUnlock, ensure, sfx } from './core/audio.js';
 import { music } from './core/music.js';
 import { frame, toast, sheetOpen } from './core/ui.js';
@@ -13,6 +14,7 @@ let current = null;
 let currentLife = null;
 let wiping = false;
 
+perf.start();
 bindUnlock();
 window.addEventListener('pointerdown', () => { ensure(); music.retry(); }, { capture: true, passive: true });
 // Çift dokunuşla yakınlaşma ve kaydırarak yenileme olmasın
@@ -120,6 +122,7 @@ async function route() {
   try {
     await wipe(color, async () => {
       teardown();
+      perf.reset();
       if (game) {
         document.body.dataset.theme = game.id;
         const mod = await game.load();

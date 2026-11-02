@@ -6,6 +6,7 @@ import { sfx, buzz, tone } from '../core/audio.js';
 import { makeFx, inked, rrect, label, shake } from '../core/fx.js';
 import { menuScreen, resultSheet, pauseSheet, toast } from '../core/ui.js';
 import { customer, setMood } from '../core/avatar.js';
+import { ART } from '../art.js';
 
 const FLAVORS = [
   { id: 'vanilya', name: 'Sade', c: '#fff6df', d: '#e9d4a6' },
@@ -50,7 +51,7 @@ export function mount(root, api) {
     f.onBack = () => api.exit();
     f.setTitle(api.game.title);
     menuScreen(f.main, api.game, {
-      art: ART_DONDURMA,
+      art: ART.dondurma,
       sub: 'Topları diz, müşteriyi kandır. Maraş dondurmacısı olmak kolay değil.',
       stats: [['Kasa', `${data.cash} ₺`], ['Yapılan Numara', data.tricks]],
       how: [
@@ -642,4 +643,3 @@ export function mount(root, api) {
   };
 }
 
-const ART_DONDURMA = `<svg class="art" viewBox="0 0 200 150"><path d="M74 88 L126 88 L100 146 Z" fill="#e8b061" stroke="#2a1636" stroke-width="4" stroke-linejoin="round"/><path d="M80 96l26 34M96 92l18 24M120 96l-26 34M104 92l-18 24" stroke="#a5682a" stroke-width="2.500"/><circle cx="100" cy="72" r="26" fill="#fff6df" stroke="#2a1636" stroke-width="4"/><circle cx="104" cy="42" r="22" fill="#ff9ec0" stroke="#2a1636" stroke-width="4"/><circle cx="98" cy="18" r="16" fill="#8a5230" stroke="#2a1636" stroke-width="4"/><path d="M196 110 L118 96" stroke="#2a1636" stroke-width="10" stroke-linecap="round"/><path d="M196 110 L118 96" stroke="#dfe6ef" stroke-width="5" stroke-linecap="round"/><g class="a-knife"><path d="M30 60c0-14 10-20 14-20s14 6 14 20l4 10H26z" fill="#ffcd3c" stroke="#2a1636" stroke-width="3.500" stroke-linejoin="round"/><circle cx="44" cy="76" r="5" fill="#c98a10" stroke="#2a1636" stroke-width="2.500"/></g></svg>`;

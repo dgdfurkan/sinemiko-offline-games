@@ -168,21 +168,59 @@ function windowScene(canvas, life) {
 
 /* ---------- Sekmeler ---------- */
 
-function gamesTab() {
+// Oyun listesi: gruplara göre ya da Sinem'in kendi sırasına göre. Favoriler hep üstte
+function orderedIds() {
+  const saved = (save.get('order') || []).filter((id) => gameById(id));
+  const rest = GAMES.map((g) => g.id).filter((id) => !saved.includes(id));
+  return [...saved, ...rest];
+}
+function setOrder(ids) {
+  save.set('order', ids);
+}
+const isFav = (id) => (save.get('favs') || []).includes(id);
+
+function ticketHTML(g, { edit = false, movable = false, pos = 0, total = 0 } = {}) {
+  const gs = save.get('games')[g.id] || {};
+  const best = gs.stars ? gs.stars.reduce((a, b) => a + (b || 0), 0) : 0;
+  const fav = isFav(g.id);
+  return html`<div class="tk-wrap ${edit ? 'editing' : ''}">
+    <button class="ticket ${g.dark ? 'ticket-dark' : ''}" data-game="${g.id}" style="--tc:${g.card}">
+      <span class="tk-art">${raw(ART[g.id] || '')}</span>
+      <span class="tk-title">${g.title}</span>
+      <span class="tk-tag">${g.tag}</span>
+      ${best ? html`<span class="tk-stars">${icon('star')}${best}</span>` : ''}
+    </button>
+    <button class="tk-fav ${fav ? 'on' : ''}" data-fav="${g.id}" aria-label="${fav ? 'Favoriden çıkar' : 'Favorilere ekle'}">${icon('star')}</button>
+    ${edit && movable ? html`<span class="tk-move">
+      <button data-move="${g.id}" data-dir="-1" ${pos === 0 ? 'disabled' : ''} aria-label="Yukarı taşı">${icon('arrow')}</button>
+      <button data-move="${g.id}" data-dir="1" ${pos >= total - 1 ? 'disabled' : ''} aria-label="Aşağı taşı">${icon('arrow')}</button>
+    </span>` : ''}
+  </div>`;
+}
+
+function gamesTab(edit) {
+  const layout = save.get('layout') === 'liste' ? 'liste' : 'grup';
+  const favs = (save.get('favs') || []).map(gameById).filter(Boolean);
+  const ids = orderedIds();
   return html`
     <div class="tab-games">
-      ${GROUPS.map(([gid, gname]) => html`
+      <div class="gm-bar">
+        <span class="gm-seg">
+          <button class="${layout === 'grup' ? 'on' : ''}" data-layout="grup">Gruplar</button>
+          <button class="${layout === 'liste' ? 'on' : ''}" data-layout="liste">Benim Sıram</button>
+        </span>
+        <button class="gm-edit ${edit ? 'on' : ''}" data-edit="1">${icon(edit ? 'check' : 'gear')}${edit ? 'Bitti' : 'Düzenle'}</button>
+      </div>
+      ${edit ? html`<p class="gm-tip">Yıldıza bas: favori olur, en üste çıkar.${layout === 'liste' ? ' Okları kullanarak sırayı değiştir.' : ' Kendi sıranı yapmak için Benim Sıram sekmesine geç.'}</p>` : ''}
+      ${favs.length ? html`
+        <h2 class="grp-title">${icon('star')}Favoriler</h2>
+        <div class="grp-grid">${favs.map((g) => ticketHTML(g, { edit }))}</div>` : ''}
+      ${layout === 'liste' ? html`
+        <h2 class="grp-title">Bütün Oyunlar</h2>
+        <div class="grp-grid">${ids.map((id, i) => ticketHTML(gameById(id), { edit, movable: true, pos: i, total: ids.length }))}</div>`
+    : GROUPS.map(([gid, gname]) => html`
         <h2 class="grp-title">${gname}</h2>
-        <div class="grp-grid">${GAMES.filter((g) => g.group === gid).map((g) => {
-          const gs = save.get('games')[g.id] || {};
-          const best = gs.stars ? gs.stars.reduce((a, b) => a + (b || 0), 0) : 0;
-          return html`<button class="ticket ${g.dark ? 'ticket-dark' : ''}" data-game="${g.id}" style="--tc:${g.card}">
-            <span class="tk-art">${raw(ART[g.id] || '')}</span>
-            <span class="tk-title">${g.title}</span>
-            <span class="tk-tag">${g.tag}</span>
-            ${best ? html`<span class="tk-stars">${icon('star')}${best}</span>` : ''}
-          </button>`;
-        })}</div>`)}
+        <div class="grp-grid">${GAMES.filter((g) => g.group === gid).map((g) => ticketHTML(g, { edit }))}</div>`)}
     </div>`;
 }
 
@@ -376,20 +414,22 @@ export function mountHub(root, { offline, onOffline }) {
     }
   };
 
+  let editMode = false;
   function render() {
     const scroll = main.scrollTop;
-    const tpl = tab === 'games' ? gamesTab() : tab === 'tasks' ? tasksTab() : tab === 'ward' ? wardrobeTab(slot) : settingsTab(offline);
+    const tpl = tab === 'games' ? gamesTab(editMode) : tab === 'tasks' ? tasksTab() : tab === 'ward' ? wardrobeTab(slot) : settingsTab(offline);
     main.innerHTML = toHTML(tpl);
     main.scrollTop = scroll;
     updateBadge();
   }
   function switchTab(next) {
     tab = next;
+    editMode = false;
     main.scrollTop = 0;
     sec.querySelectorAll('.nav-b').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     render();
     main.firstElementChild.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.22,1,.36,1)' });
-    if (tab === 'games') main.querySelectorAll('.ticket').forEach((n, i) => popIn(n, i * 22));
+    if (tab === 'games') main.querySelectorAll('.ticket').forEach((n, i) => popIn(n, Math.min(i, 14) * 22));
   }
 
   life.on(sec, 'click', async (e) => {
@@ -400,8 +440,52 @@ export function mountHub(root, { offline, onOffline }) {
       switchTab(nav.dataset.tab);
       return;
     }
+    const fav = e.target.closest('[data-fav]');
+    if (fav) {
+      const id = fav.dataset.fav;
+      const list = (save.get('favs') || []).slice();
+      const i = list.indexOf(id);
+      if (i >= 0) list.splice(i, 1); else list.push(id);
+      save.set('favs', list);
+      sfx[i >= 0 ? 'soft' : 'star'](1);
+      buzz(10);
+      render();
+      return;
+    }
+    const mv = e.target.closest('[data-move]');
+    if (mv && !mv.disabled) {
+      const ids = orderedIds();
+      const i = ids.indexOf(mv.dataset.move);
+      const j = i + Number(mv.dataset.dir);
+      if (i >= 0 && j >= 0 && j < ids.length) {
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        setOrder(ids);
+        sfx.tile();
+        buzz(8);
+        render();
+      }
+      return;
+    }
+    const lay = e.target.closest('[data-layout]');
+    if (lay) {
+      save.set('layout', lay.dataset.layout);
+      sfx.tap();
+      render();
+      return;
+    }
+    if (e.target.closest('[data-edit]')) {
+      editMode = !editMode;
+      sfx.tap();
+      buzz(8);
+      render();
+      return;
+    }
     const card = e.target.closest('[data-game]');
     if (card) {
+      if (editMode) {
+        sfx.soft();
+        return;
+      }
       sfx.tap();
       buzz(8);
       location.hash = `#/oyun/${card.dataset.game}`;
