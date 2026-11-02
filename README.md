@@ -19,7 +19,7 @@ Sinem için internetsiz oyun koleksiyonu. Telefona ya da tablete bir kere ana ek
 | Petri Kabı | Lab | Hücreleri birleştir, atomdan canlıya çık |
 | Mitoz Fırtınası | Lab | Bir hücreye dokun, zincirleme bölünme başlasın |
 | Damar Bağla | Lab | Aynı renkli uçları kesişmeden birleştir, kan aksın |
-| Harf Kovanı | Kelime | Petekten kelime çıkar, kovanı balla doldur |
+| Harf Kovanı | Kelime | İki sürüm: Harf Çiçeği (bölümün bütün kelimeleri) ve Petek Avı (hamleli kovan) |
 | Biyo Bulmaca | Kelime | Laboratuvar terimlerinden kare bulmaca |
 | Bee Koyun | Fizik | Köpekle sürüyü ağıla götür, her gün başka bir engel |
 | Çiz Geç | Fizik | Tebeşirle çiz, çizdiğin düşsün, topu kalbe ulaştır |

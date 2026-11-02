@@ -407,14 +407,29 @@ body[data-theme="kovan"] .g-title { font-weight: 800; }
 .kv-goal b { font: 800 0.875rem/1.15 'Baloo 2', sans-serif; color: #2a1636; }
 .kv-pbar { display: block; height: 0.4375rem; margin-top: 0.125rem; background: rgba(42,22,54,.14); border-radius: 62.4375rem; overflow: hidden; }
 .kv-pbar u { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ffcd3c, #ff9f1a); transition: width .3s; }
-.kv-moves { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 3.625rem; padding: 0.125rem 0.5rem; background: #2a1636; border: 0.1875rem solid #2a1636; border-radius: 0.9375rem; color: #ffd166; }
-.kv-moves b { font: 800 1.25rem/1 'Baloo 2', sans-serif; }
-.kv-moves small { font: 700 0.5938rem/1 'Baloo 2', sans-serif; opacity: .8; }
+.kv-score { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 4.25rem; padding: 0.125rem 0.5rem; background: #2a1636; border: 0.1875rem solid #2a1636; border-radius: 0.9375rem; color: #ffd166; }
+.kv-score b { font: 800 1.1875rem/1 'Baloo 2', sans-serif; }
+.kv-score small { font: 700 0.5938rem/1 'Baloo 2', sans-serif; opacity: .8; }
 .kv-cv { flex: 1; min-height: 0; width: 100%; }
-.kv-word { height: 1.875rem; display: grid; place-items: center; font: 800 1.25rem/1 'Baloo 2', sans-serif; color: #2a1636; letter-spacing: .08em; opacity: 0; transition: opacity .15s, transform .15s; }
+.kv-word { height: 2.125rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font: 800 1.25rem/1 'Baloo 2', sans-serif; color: #2a1636; letter-spacing: .08em; opacity: 0; transition: opacity .15s; }
 .kv-word.on { opacity: 1; }
-.kv-word.ok { color: #0f7a4a; transform: scale(1.1); }
-.kv-word.no { color: #c42a3f; }
+.kv-word b { font: inherit; letter-spacing: inherit; }
+.kv-word.ok b { color: #0f7a4a; }
+.kv-word.extra b { color: #0b6e93; }
+.kv-word.no b { color: #c42a3f; }
+.kv-x { display: none; width: 1.875rem; height: 1.875rem; place-items: center; padding: 0; background: #fff; border: 0.1875rem solid #2a1636; border-radius: 50%; color: #2a1636; }
+.kv-word.tap .kv-x { display: grid; }
+.kv-x .ic { width: 1rem; height: 1rem; }
+.kv-ok { background: #2ee6a0; }
+.kv-x:active { transform: scale(.92); }
+.kv-wait { position: absolute; inset: 0; display: grid; place-items: center; background: #ffd166; color: #2a1636; font: 800 0.9375rem/1.3 'Baloo 2', sans-serif; }
+.kv-modes { display: flex; gap: 0.5rem; }
+.kv-mode { flex: 1; display: flex; flex-direction: column; gap: 0.125rem; padding: 0.5625rem 0.6875rem; background: #fff; border: 0.1875rem solid #2a1636; border-radius: 1rem; box-shadow: 0 0.1875rem 0 #2a1636; color: #2a1636; text-align: left; }
+.kv-mode b { font: 800 0.9375rem/1.1 'Baloo 2', sans-serif; }
+.kv-mode small { font: 700 0.6875rem/1.15 'Baloo 2', sans-serif; opacity: .65; }
+.kv-mode.on { background: #2a1636; color: #ffd166; }
+.kv-mode.on small { opacity: .85; }
+.kv-mode:active { transform: translateY(0.125rem); box-shadow: 0 0.0625rem 0 #2a1636; }
 .kv-bar { display: flex; gap: 0.4375rem; }
 .kv-honey { display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; background: #fff6d8; border: 0.1875rem solid #2a1636; border-radius: 0.875rem; }
 .kv-honey svg { width: 1.25rem; height: 1.25rem; }
@@ -422,14 +437,44 @@ body[data-theme="kovan"] .g-title { font-weight: 800; }
 .kv-b { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.3125rem; padding: 0.4375rem 0.375rem; background: #fff; border: 0.1875rem solid #2a1636; border-radius: 0.875rem; box-shadow: 0 0.1875rem 0 #2a1636; color: #2a1636; font: 800 0.875rem/1 'Baloo 2', sans-serif; }
 .kv-b:active { transform: translateY(0.125rem); box-shadow: 0 0.0625rem 0 #2a1636; }
 .kv-b .ic { width: 1.125rem; height: 1.125rem; }
-.kv-wait { position: absolute; inset: 0; display: grid; place-items: center; background: #ffd166; color: #2a1636; font: 800 0.9375rem/1.3 'Baloo 2', sans-serif; }
 @media (orientation: landscape) and (min-width: 640px) {
-  .kv { display: grid; grid-template-columns: 1fr 1.25fr; grid-template-rows: auto 1fr auto; column-gap: 0.875rem; }
+  .kv { display: grid; grid-template-columns: 1fr 2.3fr; grid-template-rows: auto 1fr auto; column-gap: 0.875rem; }
   .kv-top { grid-column: 1; grid-row: 1; flex-direction: column; }
-  .kv-cv { grid-column: 2; grid-row: 1 / 4; }
+  .kv-cv { grid-column: 2; grid-row: 1 / 4; height: 100%; min-height: 0; align-self: stretch; }
   .kv-word { grid-column: 1; grid-row: 2; align-self: center; font-size: 1.5rem; }
   .kv-bar { grid-column: 1; grid-row: 3; flex-wrap: wrap; }
 }
+/* Bölüm sonu arıcılık notu */
+.sheet-note { gap: 0.625rem; }
+.kv-note { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; text-align: center; }
+.kv-note-art { width: 100%; background: linear-gradient(180deg, #ffe9a8, #ffd166); border: 0.1875rem solid #2a1636; border-radius: 1.125rem; overflow: hidden; }
+.kv-note-art svg { display: block; width: 100%; height: auto; }
+.kv-note small { margin-top: 0.5rem; font: 800 0.6875rem/1 'Baloo 2', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #d98c00; }
+.kv-note h2 { font: 800 1.4375rem/1.12 'Baloo 2', sans-serif; color: #2a1636; }
+.kv-note p { font: 600 0.9375rem/1.45 'Baloo 2', sans-serif; color: #5a4a66; }
+.kv-n-wing { transform-box: fill-box; transform-origin: 14% 92%; animation: kvWing .1s linear infinite alternate; }
+.kv-n-wing2 { animation-duration: .13s; }
+.kv-n-fly { animation: kvFly 3.6s ease-in-out infinite; }
+.kv-n-bob { animation: kvBob 2.4s ease-in-out infinite; }
+.kv-n-orbit { animation: kvOrbit 6s linear infinite; }
+.kv-n-drip { transform-box: fill-box; transform-origin: top center; animation: kvDrip 2.6s ease-in infinite; }
+.kv-n-pollen { animation: kvPollen 2.4s ease-out infinite; }
+.kv-n-sway { transform-box: fill-box; transform-origin: bottom center; animation: kvSway 3.8s ease-in-out infinite; }
+.kv-n-smoke { animation: kvSmoke 3s ease-out infinite; }
+.kv-n-eight { animation: kvEight 4.6s ease-in-out infinite; }
+.kv-n-dash { animation: kvDash 3s linear infinite; }
+.kv-n-dip { transform-box: fill-box; transform-origin: top center; animation: kvDip 4s ease-in-out infinite; }
+@keyframes kvWing { from { transform: rotate(-17deg); } to { transform: rotate(15deg); } }
+@keyframes kvFly { 0%, 100% { transform: translate(0, 0); } 30% { transform: translate(0.875rem, -0.6875rem); } 62% { transform: translate(-0.6875rem, 0.4375rem); } }
+@keyframes kvBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.375rem); } }
+@keyframes kvOrbit { to { transform: rotate(360deg); } }
+@keyframes kvDrip { 0% { transform: translateY(0) scaleY(.5); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(2rem) scaleY(1.2); opacity: 0; } }
+@keyframes kvPollen { 0% { transform: translate(0, 0) scale(.4); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(-1.75rem, -1.625rem) scale(1); opacity: 0; } }
+@keyframes kvSway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes kvSmoke { 0% { transform: translateY(0.5rem) scale(.75); opacity: .9; } 100% { transform: translateY(-1.5rem) scale(1.35); opacity: 0; } }
+@keyframes kvEight { 0%, 100% { transform: translate(0, 0) rotate(0); } 25% { transform: translate(1.5rem, 1.125rem) rotate(20deg); } 50% { transform: translate(0, 2.125rem) rotate(0); } 75% { transform: translate(-1.5rem, 1.125rem) rotate(-20deg); } }
+@keyframes kvDash { to { stroke-dashoffset: -60; } }
+@keyframes kvDip { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(0.625rem) rotate(6deg); } }
 
 /* ---------- Çiz Geç ---------- */
 body[data-theme="ciz"] { --bg: #20392e; --accent: #e8f3d8; --accent-d: #c9d8a0; --accent-ink: #20392e; --title-font: 'Patrick Hand', sans-serif; --body-font: 'Patrick Hand', sans-serif; }
@@ -592,6 +637,7 @@ body[data-theme="damar"] .g-title { font-weight: 800; }
 .kv-banner { position: absolute; left: 50%; top: 34%; transform: translate(-50%, 0.625rem) scale(.8); padding: 0.4375rem 1.125rem; background: #2a1636; border: 0.1875rem solid #ffcd3c; border-radius: 62.4375rem; color: #ffe27a; font: 800 1.1875rem/1 'Baloo 2', sans-serif; letter-spacing: .04em; opacity: 0; pointer-events: none; }
 .kv-banner.on { animation: kvBan 1.1s cubic-bezier(.2,1.5,.4,1) forwards; }
 .kv-banner.big { font-size: 1.5rem; border-color: #2ee6a0; color: #b6ffdf; }
+.kv-banner.extra { font-size: 1.0625rem; border-color: #8ad8ff; color: #d6f2ff; }
 @keyframes kvBan { 0% { opacity: 0; transform: translate(-50%, 1rem) scale(.7); } 18% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 32% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -1.375rem) scale(1); } }
 .kv-combo { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); padding: 0.1875rem 0.75rem; background: #ff7a1a; border: 0.1562rem solid #2a1636; border-radius: 62.4375rem; color: #fff; font: 800 0.8125rem/1.3 'Baloo 2', sans-serif; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .kv-combo.on { opacity: 1; animation: kvCombo .8s ease-in-out infinite; }

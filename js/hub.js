@@ -181,7 +181,8 @@ const isFav = (id) => (save.get('favs') || []).includes(id);
 
 function ticketHTML(g, { edit = false, movable = false, pos = 0, total = 0 } = {}) {
   const gs = save.get('games')[g.id] || {};
-  const best = gs.stars ? gs.stars.reduce((a, b) => a + (b || 0), 0) : 0;
+  const sumStars = (a) => (Array.isArray(a) ? a.reduce((x, y) => x + (y || 0), 0) : 0);
+  const best = sumStars(gs.stars) + sumStars(gs.starsC);
   const fav = isFav(g.id);
   return html`<div class="tk-wrap ${edit ? 'editing' : ''}">
     <button class="ticket ${g.dark ? 'ticket-dark' : ''}" data-game="${g.id}" style="--tc:${g.card}">
