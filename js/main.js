@@ -22,6 +22,7 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
 
 export const offline = { state: 'wait', done: 0, total: 0, update: false };
+let onUpdateIdle = null;
 const offListeners = new Set();
 export const onOffline = (fn) => { offListeners.add(fn); return () => offListeners.delete(fn); };
 const offEmit = () => offListeners.forEach((fn) => fn(offline));
@@ -48,21 +49,41 @@ function setupSW() {
       offline.state = 'ready';
       offEmit();
     }
+    // Yeni sürüm: internet varken kendiliğinden alınır. Oyunun ortasında kesmez,
+    // ana ekrandayken ya da bir sonraki açılışta sessizce uygulanır
+    let applying = false;
+    const apply = () => {
+      if (applying || !reg.waiting) return;
+      applying = true;
+      navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+      reg.waiting.postMessage('skip-waiting');
+    };
+    const idle = () => !location.hash.startsWith('#/oyun') && !sheetOpen();
     const checkWaiting = () => {
-      if (reg.waiting && navigator.serviceWorker.controller) {
-        offline.update = true;
-        offline.applyUpdate = () => {
-          reg.waiting.postMessage('skip-waiting');
-          navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
-        };
-        offEmit();
+      if (!reg.waiting || !navigator.serviceWorker.controller) return;
+      offline.update = true;
+      offline.applyUpdate = apply;
+      offEmit();
+      if (idle()) {
+        toast('Yeni sürüm geldi, yükleniyor.');
+        setTimeout(apply, 900);
       }
     };
     checkWaiting();
+    onUpdateIdle = checkWaiting;
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;
       if (w) w.addEventListener('statechange', checkWaiting);
     });
+    // Açılışta, sekmeye dönünce ve internet gelince yeni sürüm var mı diye bak
+    const look = () => {
+      if (navigator.onLine === false) return;
+      reg.update().catch(() => {});
+    };
+    look();
+    window.addEventListener('online', look);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) look(); });
+    setInterval(look, 30 * 60 * 1000);
     navigator.serviceWorker.ready.then(() => {
       if (offline.state !== 'ready' && navigator.serviceWorker.controller) {
         offline.state = 'ready';
@@ -147,6 +168,8 @@ async function route() {
   }
   wiping = false;
   if (location.hash !== hash) route();
+  // Ana ekrana döndüysek bekleyen güncellemeyi şimdi al
+  if (offline.update && onUpdateIdle) onUpdateIdle();
 }
 
 function makeApi(game) {

@@ -589,3 +589,10 @@ body[data-theme="damar"] .g-title { font-weight: 800; }
   .dm-bar { grid-column: 1; grid-row: 2; flex-direction: column; align-items: stretch; align-self: start; }
   .dm-b { justify-content: center; }
 }
+.kv-banner { position: absolute; left: 50%; top: 34%; transform: translate(-50%, 0.625rem) scale(.8); padding: 0.4375rem 1.125rem; background: #2a1636; border: 0.1875rem solid #ffcd3c; border-radius: 62.4375rem; color: #ffe27a; font: 800 1.1875rem/1 'Baloo 2', sans-serif; letter-spacing: .04em; opacity: 0; pointer-events: none; }
+.kv-banner.on { animation: kvBan 1.1s cubic-bezier(.2,1.5,.4,1) forwards; }
+.kv-banner.big { font-size: 1.5rem; border-color: #2ee6a0; color: #b6ffdf; }
+@keyframes kvBan { 0% { opacity: 0; transform: translate(-50%, 1rem) scale(.7); } 18% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 32% { transform: translate(-50%, 0) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -1.375rem) scale(1); } }
+.kv-combo { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); padding: 0.1875rem 0.75rem; background: #ff7a1a; border: 0.1562rem solid #2a1636; border-radius: 62.4375rem; color: #fff; font: 800 0.8125rem/1.3 'Baloo 2', sans-serif; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.kv-combo.on { opacity: 1; animation: kvCombo .8s ease-in-out infinite; }
+@keyframes kvCombo { 50% { transform: translateX(-50%) scale(1.07); } }

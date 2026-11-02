@@ -1,7 +1,7 @@
 // Çevrimdışı kalkan: ilk açılışta bütün oyun dosyaları telefona iner, sonra internet hiç gerekmez.
 // Bu dosya tools/build.py ile üretilir, elle değiştirme.
 
-const VERSION = '19c17f46d267';
+const VERSION = '099be375ceb7';
 const CACHE = `sinemiko-yolda-${VERSION}`;
 const ASSETS = [
   "./",

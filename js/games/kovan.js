@@ -1,9 +1,9 @@
 // Harf Kovanı: petekteki komşu harfleri parmağınla birleştir, kelime çıkar. Kelime bal olur, kavanoz dolar.
 // Harf listesi 44 bin Türkçe kelime. Bulduğun harfler patlar, üstten yeni harf düşer, arılar balı taşır.
 
-import { Life, html, toHTML, fitCanvas, clamp, lerp, rand, randInt, pick, trUpper, trLower, seeded } from '../core/dom.js';
+import { Life, html, toHTML, fitCanvas, clamp, lerp, rand, randInt, pick, trUpper, trLower, seeded, shuffle } from '../core/dom.js';
 import { sfx, buzz, tone } from '../core/audio.js';
-import { makeFx, label, shake, pop } from '../core/fx.js';
+import { makeFx, rrect, label, shake, pop } from '../core/fx.js';
 import { menuScreen, resultSheet, pauseSheet, toast, icon } from '../core/ui.js';
 import { ART } from '../art.js';
 
@@ -41,7 +41,7 @@ const goalOf = (li) => {
     const letter = r.pick('aeiknrlstmd'.split(''));
     return { kind, n: 8 + Math.floor(li / 4), letter, text: (n, g) => `${n} tane ${trUpper(g.letter)} harfi kullan` };
   }
-  return { kind, n: 160 + li * 95, text: (n) => `${n} bal topla` };
+  return { kind, n: 280 + li * 140, text: (n) => `${n} bal topla` };
 };
 const movesOf = (li) => Math.max(10, 18 - Math.floor(li / 6));
 
@@ -96,6 +96,7 @@ export function mount(root, api) {
     const game = {
       letters: [], sel: [], honey: 0, words: 0, prog: 0, moves: movesOf(li), done: false, paused: false,
       pops: [], bees: [], last: '', shakeCell: -1, hintCells: [], loading: true, goal,
+      combo: 0, comboT: 0, jar: { x: 0, y: 0, r: 30 }, jarPulse: 0, flash: 0,
     };
     st = game;
 
@@ -108,6 +109,8 @@ export function mount(root, api) {
         </div>
         <canvas class="kv-cv"></canvas>
         <div class="kv-word" data-word></div>
+        <div class="kv-banner" data-banner></div>
+        <div class="kv-combo" data-combo></div>
         <div class="kv-bar">
           <span class="kv-honey"><svg viewBox="0 0 24 24"><path d="M6 9h12l1 11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" fill="#ffb31a" stroke="#2a1636" stroke-width="2.200" stroke-linejoin="round"/><path d="M5 6h14v3H5z" fill="#fff3cf" stroke="#2a1636" stroke-width="2.200"/></svg><b data-honey>0</b></span>
           <button class="kv-b" data-act="shuffle">${icon('replay')}Karıştır</button>
@@ -118,6 +121,8 @@ export function mount(root, api) {
     const wrap = f.main.querySelector('.kv');
     const cv = wrap.querySelector('.kv-cv');
     const wordEl = wrap.querySelector('[data-word]');
+    const bannerEl = wrap.querySelector('[data-banner]');
+    const comboEl = wrap.querySelector('[data-combo]');
     const honeyEl = wrap.querySelector('[data-honey]');
     const movesEl = wrap.querySelector('[data-moves]');
     const pbar = wrap.querySelector('[data-pbar]');
@@ -134,14 +139,71 @@ export function mount(root, api) {
 
     // Harf dağıtımı: en az yedi sesli olsun ki kelime çıksın
     const drawLetter = () => BAG[rng.int(0, BAG.length - 1)];
-    function fill() {
-      game.letters = CELLS.map(() => drawLetter());
-      let guard = 0;
-      while (guard++ < 60) {
-        const v = game.letters.filter((c) => VOWELS.includes(c)).length;
-        if (v >= 6 && v <= 11 && findWord()) break;
-        game.letters = CELLS.map(() => drawLetter());
+    const RARE = 'jfğöçvpz';
+    // Bir peteğin oynanabilirliği: kaç ayrı kelime çıkıyor, uzunu var mı
+    const quality = (cap = 14) => {
+      const found = scanWords(3, cap);
+      let long = 0;
+      for (const w of found) if (w.length >= 5) long++;
+      return { n: found.size, long };
+    };
+    // Harfleri sesli uyumuna göre dağıt: her sesliyi ayrı yere koy, nadir harfi bir taneyle sınırla
+    function deal() {
+      const n = CELLS.length;
+      const vCount = rng.int(7, 9);
+      const letters = new Array(n).fill(null);
+      const vowelBag = BAG.filter((c) => VOWELS.includes(c));
+      const consBag = BAG.filter((c) => !VOWELS.includes(c));
+      // Sesliler önce: birbirine fazla yapışmasın
+      const spots = shuffle(CELLS.map((c) => c.i), () => rng());
+      let placed = 0;
+      for (const i of spots) {
+        if (placed >= vCount) break;
+        const near = NEI[i].filter((j) => letters[j] && VOWELS.includes(letters[j])).length;
+        if (near > 1) continue;
+        letters[i] = vowelBag[rng.int(0, vowelBag.length - 1)];
+        placed++;
       }
+      for (const i of spots) {
+        if (placed >= vCount) break;
+        if (!letters[i]) { letters[i] = vowelBag[rng.int(0, vowelBag.length - 1)]; placed++; }
+      }
+      let rare = 0;
+      for (let i = 0; i < n; i++) {
+        if (letters[i]) continue;
+        let c = consBag[rng.int(0, consBag.length - 1)];
+        let guard = 0;
+        while (RARE.includes(c) && rare >= 1 && guard++ < 12) c = consBag[rng.int(0, consBag.length - 1)];
+        if (RARE.includes(c)) rare++;
+        letters[i] = c;
+      }
+      return letters;
+    }
+    function fill() {
+      let best = null;
+      for (let guard = 0; guard < 40; guard++) {
+        game.letters = deal();
+        const q = quality();
+        if (!best || q.n > best.q.n) best = { letters: game.letters.slice(), q };
+        if (q.n >= 9 && q.long >= 1) return;
+      }
+      game.letters = best.letters;
+    }
+    // Petekteki kelimeleri tara: bulunca durur, arayüz takılmasın
+    function scanWords(minLen = 3, cap = 20) {
+      const out = new Set();
+      const seen = new Array(CELLS.length).fill(false);
+      const walk = (i, word) => {
+        if (out.size >= cap) return;
+        const w = word + game.letters[i];
+        if (w.length >= minLen && WORDS.has(w)) out.add(w);
+        if (w.length >= 6) return;
+        seen[i] = true;
+        for (const j of NEI[i]) if (!seen[j]) walk(j, w);
+        seen[i] = false;
+      };
+      for (let i = 0; i < CELLS.length && out.size < cap; i++) walk(i, '');
+      return out;
     }
     // Petekte geçerli bir kelime var mı: kısa derinlikli arama
     function findWord(minLen = 3) {
@@ -179,6 +241,8 @@ export function mount(root, api) {
     relayout();
 
     game.posOf = (i) => cellPos(CELLS[i]);
+    game.quality = (cap) => quality(cap);
+    game.reshuffle = () => fill();
     game.findWord = (n) => findWord(n);
     const cellAt = (px, py) => {
       let best = -1;
@@ -214,6 +278,8 @@ export function mount(root, api) {
       syncWord();
       if (w.length < 3) return;
       if (!WORDS.has(w)) {
+        game.combo = 0;
+        comboEl.classList.remove('on');
         sfx.bad();
         buzz(30);
         game.shakeCell = path[path.length - 1];
@@ -223,8 +289,21 @@ export function mount(root, api) {
         my.timeout(() => { if (!curWord()) { wordEl.textContent = ''; wordEl.className = 'kv-word'; } }, 700);
         return;
       }
-      const pts = scoreOf(w);
+      game.combo++;
+      game.comboT = 2.6;
+      const mult = 1 + Math.min(1.5, (game.combo - 1) * 0.25);
+      const pts = Math.round(scoreOf(w) * mult);
       game.honey += pts;
+      game.jarPulse = 1;
+      game.flash = 0.5;
+      bannerEl.textContent = `${trUpper(w)}  +${pts}`;
+      bannerEl.className = `kv-banner on${w.length >= 6 ? ' big' : ''}`;
+      my.timeout(() => bannerEl.classList.remove('on'), 1100);
+      if (game.combo >= 2) {
+        comboEl.textContent = `${game.combo} üst üste  x${mult.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+        comboEl.classList.add('on');
+      }
+      if (w.length >= 6) shake(wrap, 8);
       game.words++;
       data.words++;
       game.moves--;
@@ -238,15 +317,27 @@ export function mount(root, api) {
       tone({ type: 'triangle', f: 420 + w.length * 70, f2: 900, dur: 0.2, vol: 0.07 });
       buzz(16);
       // Harfler patlar, üstten yenisi düşer
-      for (const i of path) {
+      const sc = game.combo >= 3 ? 1.6 : 1;
+      path.forEach((i, k) => {
         const p = cellPos(CELLS[i]);
-        game.pops.push({ x: p.x, y: p.y, c: game.letters[i], t: 0 });
-        fx.burst(p.x, p.y, { n: 10, colors: ['#ffcd3c', '#fff3cf'], power: 220 });
-        game.letters[i] = drawLetter();
+        game.pops.push({ x: p.x, y: p.y, c: game.letters[i], t: 0, to: game.jar });
+        fx.burst(p.x, p.y, { n: Math.round(10 * sc) + k, colors: ['#ffcd3c', '#fff3cf', '#ffa41a'], power: 220 * sc });
         game.drops = game.drops || {};
         game.drops[i] = 1;
+      });
+      // Yeni harfler: peteği oynanır tutacak şekilde seçilir
+      const old = path.map((i) => game.letters[i]);
+      let bestTry = null;
+      for (let tryN = 0; tryN < 14; tryN++) {
+        const cand = deal();
+        path.forEach((i, k) => { game.letters[i] = cand[(i + k * 7) % cand.length]; });
+        const q = quality(10);
+        if (!bestTry || q.n > bestTry.q.n) bestTry = { letters: path.map((i) => game.letters[i]), q };
+        if (q.n >= 5) break;
       }
-      for (let k = 0; k < Math.min(4, Math.ceil(w.length / 2)); k++) {
+      if (bestTry && bestTry.q.n < 2) path.forEach((i, k) => { game.letters[i] = old[k]; });
+      else if (bestTry) path.forEach((i, k) => { game.letters[i] = bestTry.letters[k]; });
+      for (let k = 0; k < Math.min(6, Math.ceil(w.length / 1.5)); k++) {
         game.bees.push({ x: rand(-40, stage.W * 0.3), y: rand(stage.H * 0.2, stage.H * 0.8), t: 0, w: rand(0, 6) });
       }
       fx.text(stage.W / 2, stage.H * 0.5, `+${pts}`, '#ffcd3c', 30);
@@ -435,11 +526,18 @@ export function mount(root, api) {
           const p = cellPos(CELLS[i]);
           if (k) g.lineTo(p.x, p.y); else g.moveTo(p.x, p.y);
         });
-        g.strokeStyle = 'rgba(42,22,54,.45)';
-        g.lineWidth = lay.s * 0.36;
         g.lineCap = 'round';
         g.lineJoin = 'round';
+        g.strokeStyle = 'rgba(42,22,54,.4)';
+        g.lineWidth = lay.s * 0.42;
         g.stroke();
+        const okNow = curWord().length >= 3 && WORDS.has(curWord());
+        g.strokeStyle = okNow ? 'rgba(46,230,160,.95)' : 'rgba(255,255,255,.7)';
+        g.lineWidth = lay.s * 0.2;
+        g.shadowColor = okNow ? '#2ee6a0' : '#fff6d8';
+        g.shadowBlur = 14 + Math.sin(t / 120) * 5;
+        g.stroke();
+        g.shadowBlur = 0;
       }
 
       for (const c of CELLS) {
@@ -477,24 +575,76 @@ export function mount(root, api) {
         g.restore();
       }
 
-      // Patlayan harfler
+      // Bal kavanozu: hedefe göre dolar
+      const jr = Math.max(26, Math.min(W, H) * 0.09);
+      game.jar = { x: W - jr * 1.25, y: H - jr * 1.9, r: jr };
+      const fillK = clamp(game.prog / goal.n, 0, 1);
+      if (game.jarPulse > 0) game.jarPulse = Math.max(0, game.jarPulse - dt * 2.4);
+      g.save();
+      g.translate(game.jar.x, game.jar.y);
+      const kp = 1 + game.jarPulse * 0.14;
+      g.scale(kp, 2 - kp);
+      rrect(g, -jr * 0.72, -jr * 0.9, jr * 1.44, jr * 1.8, jr * 0.3);
+      g.fillStyle = 'rgba(255,255,255,.55)';
+      g.fill();
+      g.lineWidth = 3.5;
+      g.strokeStyle = '#2a1636';
+      g.stroke();
+      g.save();
+      rrect(g, -jr * 0.72, -jr * 0.9, jr * 1.44, jr * 1.8, jr * 0.3);
+      g.clip();
+      const hy = jr * 0.9 - fillK * jr * 1.8;
+      g.fillStyle = '#f0a000';
+      g.beginPath();
+      g.moveTo(-jr * 0.8, hy);
+      for (let x = -jr * 0.8; x <= jr * 0.8; x += 6) g.lineTo(x, hy + Math.sin(x / 9 + t / 260) * 2.6);
+      g.lineTo(jr * 0.8, jr);
+      g.lineTo(-jr * 0.8, jr);
+      g.closePath();
+      g.fill();
+      g.restore();
+      rrect(g, -jr * 0.5, -jr * 1.15, jr, jr * 0.34, jr * 0.14);
+      g.fillStyle = '#c98b52';
+      g.fill();
+      g.lineWidth = 3;
+      g.strokeStyle = '#2a1636';
+      g.stroke();
+      g.restore();
+      label(g, game.jar.x, game.jar.y + jr * 0.2, `%${Math.round(fillK * 100)}`, { size: jr * 0.46, color: '#fff', stroke: '#2a1636', sw: 0.3, font: '"Baloo 2", sans-serif' });
+
+      // Toplanan harfler kavanoza akar
       game.pops = game.pops.filter((p) => {
-        p.t += dt * 2.2;
+        p.t += dt * 1.5;
         if (p.t >= 1) return false;
+        const k = p.t * p.t * (3 - 2 * p.t);
+        const x = lerp(p.x, game.jar.x, k);
+        const y = lerp(p.y, game.jar.y, k) - Math.sin(p.t * Math.PI) * lay.s * 1.2;
         g.save();
-        g.globalAlpha = 1 - p.t;
-        g.translate(p.x, p.y - p.t * lay.s * 1.4);
-        label(g, 0, 0, trUpper(p.c), { size: lay.s * (0.9 + p.t * 0.5), color: '#fff', stroke: '#2a1636', font: '"Baloo 2", sans-serif' });
+        g.globalAlpha = 1 - p.t * 0.7;
+        g.translate(x, y);
+        label(g, 0, 0, trUpper(p.c), { size: lay.s * (0.9 - p.t * 0.45), color: '#fff', stroke: '#2a1636', font: '"Baloo 2", sans-serif' });
         g.restore();
         return true;
       });
+      if (game.comboT > 0) {
+        game.comboT -= dt;
+        if (game.comboT <= 0) {
+          game.combo = 0;
+          comboEl.classList.remove('on');
+        }
+      }
+      if (game.flash > 0) {
+        game.flash -= dt;
+        g.fillStyle = `rgba(255,255,255,${Math.max(0, game.flash) * 0.22})`;
+        g.fillRect(0, 0, W, H);
+      }
 
       // Bal taşıyan arılar
       game.bees = game.bees.filter((b) => {
         b.t += dt * 0.55;
         if (b.t >= 1) return false;
-        const x = lerp(b.x, W * 0.92, b.t);
-        const y = lerp(b.y, 8 + stage.H * 0.02, b.t) + Math.sin(t / 160 + b.w) * 12;
+        const x = lerp(b.x, game.jar.x, b.t);
+        const y = lerp(b.y, game.jar.y - game.jar.r, b.t) + Math.sin(t / 160 + b.w) * 12;
         bee(g, x, y, lay.s * 0.3, t);
         return true;
       });
