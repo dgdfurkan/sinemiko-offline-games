@@ -38,7 +38,16 @@ export const coinSVG = () => raw('<svg class="coin-ic" viewBox="0 0 24 24" aria-
 /* ---------- Alt pencere ve tost ---------- */
 
 let sheets = 0;
+const openCloses = new Set();
 export const sheetOpen = () => sheets > 0;
+// Oyun değişince açık kalan pencereler kapansın, yeni ekranın üstünde durmasın
+export function closeSheets() {
+  for (const fn of [...openCloses]) fn();
+  openCloses.clear();
+  sheets = 0;
+  const root = document.getElementById('overlays');
+  if (root) root.querySelectorAll('.sheet-back, .toast').forEach((n) => n.remove());
+}
 
 export function openSheet(tpl, { actions = {}, dismiss = true, onClose = null, cls = '' } = {}) {
   const back = el(html`<div class="sheet-back"><div class="sheet ${cls}" role="dialog" aria-modal="true">${tpl}</div></div>`);
@@ -51,12 +60,14 @@ export function openSheet(tpl, { actions = {}, dismiss = true, onClose = null, c
   const close = (value) => {
     if (closed) return;
     closed = true;
+    openCloses.delete(close);
     sheets--;
     back.style.pointerEvents = 'none';
     const a = back.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, fill: 'forwards' });
     a.finished.then(() => back.remove(), () => back.remove());
     if (onClose) onClose(value);
   };
+  openCloses.add(close);
   back.addEventListener('click', (e) => {
     const t = e.target.closest('[data-act]');
     if (t && sheet.contains(t)) {
@@ -157,7 +168,7 @@ export function howSheet(game, lines) {
 // levels: { total, stars: [], onPick(i) } açık olan: son geçilenin bir fazlası
 export function menuScreen(main, game, { art = '', sub = '', stats = [], how = null, buttons = [], levels = null, extra = '' }) {
   main.innerHTML = toHTML(html`
-    <div class="menu">
+    <div class="menu ${levels ? '' : 'menu-solo'}">
       <div class="menu-head">
         ${art ? html`<div class="menu-art">${raw(art)}</div>` : ''}
         ${sub ? html`<p class="menu-sub">${sub}</p>` : ''}

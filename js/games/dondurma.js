@@ -94,7 +94,7 @@ export function mount(root, api) {
     };
     const geo = () => {
       const u = Math.min(s.W, s.H * 0.62);
-      return { u, r: u * 0.082, baseX: s.W / 2, baseY: s.H * 0.8, paddleY: s.H * 0.19 };
+      return { u, r: u * 0.105, baseX: s.W / 2, baseY: s.H * 0.72, paddleY: s.H * 0.33 };
     };
     const money = (n) => {
       game.money += n;
@@ -405,7 +405,7 @@ export function mount(root, api) {
 
     const step = (dt) => {
       const g = geo();
-      if (game.hold) game.paddle += dt * cfg.speed * 2.1;
+      game.paddle += dt * cfg.speed * (game.hold ? 2.1 : 0.9);
       if (game.falling) {
         const b = game.falling;
         b.vy += s.H * 3.2 * dt;
@@ -567,8 +567,8 @@ export function mount(root, api) {
         g.strokeStyle = '#2a163655';
         g.stroke();
         g.setLineDash([]);
-        if (!game.hold && !game.falling) label(g, W / 2, paddleY + r * 1.4, 'Kazandan dondurma seç', { size: Math.max(16, u * 0.05), color: '#fff' });
-        else if (game.hold) label(g, W / 2, H * 0.08 + r * 2.8 + (paddleY > 0 ? r : 0), 'Üstüne gelince dokun', { size: Math.max(14, u * 0.042), color: '#fff' });
+        if (!game.hold && !game.falling) label(g, W / 2, baseY + r * 2.6, 'Kazandan dondurma seç', { size: Math.max(16, u * 0.05), color: '#fff' });
+        else if (game.hold) label(g, W / 2, paddleY + r * 2.6, 'Külahın üstüne gelince dokun', { size: Math.max(14, u * 0.042), color: '#fff' });
       }
       if (game.falling) drawScoop(g, game.falling.x, game.falling.y, r, game.falling.fi);
       // Numara: uzanan el ve kocaman ok

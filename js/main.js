@@ -5,7 +5,7 @@ import { save } from './core/save.js';
 import { perf } from './core/perf.js';
 import { bindUnlock, ensure, sfx } from './core/audio.js';
 import { music } from './core/music.js';
-import { frame, toast, sheetOpen } from './core/ui.js';
+import { frame, toast, sheetOpen, closeSheets } from './core/ui.js';
 import { gameById } from './registry.js';
 import { mountHub } from './hub.js';
 
@@ -121,6 +121,7 @@ async function route() {
   const color = game ? game.card : '#2a1636';
   try {
     await wipe(color, async () => {
+      closeSheets();
       teardown();
       perf.reset();
       if (game) {

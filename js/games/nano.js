@@ -42,7 +42,7 @@ export function mount(root, api) {
     menuScreen(f.main, api.game, {
       art: ART.nano,
       sub: 'Damarın içinde minik bir denizaltısın. Oksijeni topla, pıhtıya takılma.',
-      stats: [['Toplanan Oksijen', data.oxy], ['En Uzun Yol', `${Math.round(data.best)} m`]],
+      stats: [['Toplanan Oksijen', Number(data.oxy) || 0], ['En Uzun Yol', `${Math.round(Number(data.best) || 0)} m`]],
       how: [
         'Parmağını ekranda gezdir: kapsül parmağını takip eder. Bırakınca olduğu yerde kalır.',
         'Mavi kabarcıklar oksijen. Hedefi doldurursan damarın sonunda kalkan kazanırsın.',
@@ -428,9 +428,26 @@ export function mount(root, api) {
       progEl.style.width = `${clamp((game.z / cfg.len) * 100, 0, 100)}%`;
       if (gate()) renderer.render(scene, camera);
 
-      // Üstteki iki boyutlu katman: yazılar, parçacıklar, nabız halkası
+      // Üstteki iki boyutlu katman: hız çizgileri, yazılar, parçacıklar
       const { W, H, g } = stage;
       stage.begin();
+      // Hız çizgileri: merkezden dışa doğru akar
+      const sp = clamp(game.speed / 60 + game.boost, 0.25, 1.4);
+      g.save();
+      g.translate(W / 2 + game.pos.x * 6, H / 2 + game.pos.y * -6);
+      g.strokeStyle = `rgba(255,220,225,${0.1 + sp * 0.12})`;
+      g.lineWidth = 2;
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2 + (i % 3) * 0.4;
+        const ph = ((t / (900 / sp) + i * 0.137) % 1);
+        const r0 = 40 + ph * Math.max(W, H) * 0.6;
+        const r1 = r0 + 26 + sp * 40;
+        g.beginPath();
+        g.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
+        g.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+        g.stroke();
+      }
+      g.restore();
       if (beat > 0.25) {
         g.beginPath();
         g.arc(W / 2, H / 2, Math.min(W, H) * (0.3 + beat * 0.16), 0, Math.PI * 2);

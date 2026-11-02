@@ -198,6 +198,8 @@ canvas { display: block; touch-action: none; }
 /* Tablet ve yan ekran: menü iki sütun */
 @media (orientation: landscape) and (min-width: 640px) {
   .menu { display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr); column-gap: 1.5rem; align-items: start; align-content: start; justify-items: center; }
+  .menu.menu-solo { display: flex; max-width: 34rem; margin: 0 auto; justify-content: center; }
+  .menu.menu-solo .menu-btns { width: min(100%, 24rem); }
   .menu > * { grid-column: 1; }
   .menu > .lv-wrap { grid-column: 2; grid-row: 1 / span 6; }
   .menu-art { width: min(11.875rem, 38vh); }

@@ -129,11 +129,11 @@ export function mount(root, api) {
     const recipe = () => MENU[lv.orders[game.k]];
     const cupGeo = () => {
       const c = CUPS[recipe().cup];
-      const maxH = s.H * 0.58;
-      const maxW = Math.min(s.W * 0.52, maxH * 0.72);
+      const maxH = Math.min(s.H * 0.58, s.W * 0.62);
+      const maxW = Math.min(s.W * 0.46, maxH * 0.72);
       const H = maxH * c.h;
       const W = maxW * c.w * 1.3;
-      return { c, H, W, cx: s.W / 2, bottom: s.H * 0.93, top: s.H * 0.93 - H };
+      return { c, H, W, cx: s.W / 2, bottom: Math.min(s.H * 0.93, s.H * 0.5 + H * 0.62), top: Math.min(s.H * 0.93, s.H * 0.5 + H * 0.62) - H };
     };
     // Katman hedefleri: birikimli doluluk (0-1)
     const targets = () => {
@@ -543,7 +543,11 @@ export function mount(root, api) {
         g.strokeStyle = cur2 ? '#ff5fa2' : done ? '#2a163655' : '#2a1636aa';
         g.stroke();
         g.setLineDash([]);
-        if (cur2) label(g, Math.min(s.W - 70, cx + hw + 6), y - 11, LIQ[x.id].name, { size: 13, align: 'left', font: '"Nunito", sans-serif', color: '#fff', stroke: '#c9266e' });
+        if (cur2) {
+          // Etiket bardağın sağına sığmıyorsa soluna geçsin
+          const fits = cx + hw + 76 < s.W;
+          label(g, fits ? cx + hw + 8 : cx - hw - 8, y - 11, LIQ[x.id].name, { size: 13, align: fits ? 'left' : 'right', font: '"Nunito", sans-serif', color: '#fff', stroke: '#c9266e' });
+        }
       });
       // Bardak kenarı
       cupPath(g, geo);

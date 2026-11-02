@@ -165,12 +165,12 @@ export function mount(root, api) {
 
     /* ================= DNA YILANI ================= */
     function snake() {
-      const CELL = 8;
+      const CELL = 10;
       const cols = Math.floor(VW / CELL);
       const rows = Math.floor((VH - 24) / CELL);
       const s = {
         body: [{ x: 6, y: 8 }, { x: 5, y: 8 }, { x: 4, y: 8 }],
-        dir: { x: 1, y: 0 }, next: { x: 1, y: 0 }, step: 0, speed: 6.5,
+        dir: { x: 1, y: 0 }, next: { x: 1, y: 0 }, step: 0, speed: 6.5, started: false,
         want: pick(BASES), items: [], grow: 0, dead: false,
       };
       const freeCell = () => {
@@ -202,6 +202,7 @@ export function mount(root, api) {
         if (Math.abs(dx) < 9 && Math.abs(dy) < 9) return;
         const nd = Math.abs(dx) > Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) };
         if (nd.x !== -s.dir.x || nd.y !== -s.dir.y) s.next = nd;
+        if (!s.started) { s.started = true; beep(660, 0.05); }
         p0 = p;
       });
       my.on(window, 'pointerup', () => { p0 = null; });
@@ -245,7 +246,7 @@ export function mount(root, api) {
 
       return (dt, t) => {
         const { g } = stage;
-        if (!game.paused && !s.dead) {
+        if (!game.paused && !s.dead && s.started) {
           s.step += dt * s.speed;
           while (s.step >= 1) { s.step -= 1; tick(); }
         }
@@ -265,21 +266,25 @@ export function mount(root, api) {
           }
         });
         TXT(g, VW / 2, VH - 10, `EŞİ: ${COMP[s.want]}`, PAL.yellow, 7);
+        if (!s.started) TXT(g, VW / 2, VH / 2 + 30, 'PARMAĞINI KAYDIR', PAL.white, 7);
         fx.draw(g, dt);
       };
     }
 
     /* ================= HÜCRE KIRICI ================= */
     function breaker() {
-      const s = { px: VW / 2, pw: 34, bx: VW / 2, by: VH - 40, vx: 42, vy: -62, bricks: [], wave: 1, drops: [], wide: 0, stuck: true };
+      const s = { px: VW / 2, pw: 34, bx: VW / 2, by: VH - 40, vx: 42, vy: -62, bricks: [], wave: 1, drops: [], wide: 0, stuck: true, trail: [] };
       const build = (w) => {
         s.bricks = [];
         const cols = 9;
-        const rows = Math.min(6, 3 + Math.floor(w / 2));
+        const rows = Math.min(9, 5 + Math.floor(w / 2));
+        const top = 22;
+        const gapY = Math.max(9, (VH * 0.5 - top) / rows);
+        const bh = Math.max(7, gapY - 3);
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             if (w > 2 && (r + c) % 7 === 3) continue;
-            s.bricks.push({ x: 6 + c * 17, y: 24 + r * 9, w: 15, h: 7, hp: r < 1 && w > 1 ? 2 : 1, c: [PAL.pink, PAL.purple, PAL.cyan, PAL.green, PAL.yellow, PAL.red][r % 6] });
+            s.bricks.push({ x: 6 + c * 17, y: top + r * gapY, w: 15, h: bh, hp: r < 2 && w > 1 ? 2 : 1, c: [PAL.pink, PAL.purple, PAL.cyan, PAL.green, PAL.yellow, PAL.red][r % 6] });
           }
         }
       };
@@ -383,7 +388,13 @@ export function mount(root, api) {
         s.drops.forEach((d) => R(g, d.x - 2, d.y, 5, 5, d.kind === 'wide' ? PAL.cyan : PAL.pink));
         R(g, s.px - pw / 2, VH - 32, pw, 5, PAL.white);
         R(g, s.px - pw / 2, VH - 32, pw, 2, PAL.cyan);
+        if (!game.paused && !s.stuck) {
+          s.trail.unshift({ x: s.bx, y: s.by });
+          if (s.trail.length > 7) s.trail.pop();
+        }
+        s.trail.forEach((p, i) => R(g, p.x - 1.5, p.y - 1.5, 3, 3, i < 3 ? '#8a7f4a' : '#4a4430'));
         R(g, s.bx - 2, s.by - 2, 4, 4, PAL.yellow);
+        R(g, s.bx - 1, s.by - 1, 2, 2, PAL.white);
         if (s.stuck) TXT(g, VW / 2, VH - 52, 'DOKUN', PAL.white, 7);
         fx.draw(g, dt);
       };
