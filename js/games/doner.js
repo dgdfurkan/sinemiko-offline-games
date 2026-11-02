@@ -138,7 +138,8 @@ export function mount(root, api) {
           <div class="dn-cone" data-cone>
             <canvas class="dn-3d"></canvas>
             <div class="dn-gauge"><i data-gz></i><b data-gn></b></div>
-            <div class="dn-hint" data-hint>Parmağını aşağı çek</div>
+            <i class="dn-cutline" data-cutline></i>
+            <div class="dn-hint" data-hint>Parmağını etin üstünden aşağı geçir</div>
           </div>
           <div class="dn-tray"><span class="dn-tray-t">Tepsi</span><div class="dn-meats" data-meats></div><span class="dn-tray-n" data-tn></span></div>
         </div>
@@ -529,6 +530,7 @@ export function mount(root, api) {
       const z = zone();
       const c = game.cook;
       hintEl.style.opacity = 0;
+      coneEl.classList.add('cut-once');
       if (game.meats >= game.trayMax && c >= z.lo && c <= z.hi) {
         sfx.tick(1);
         return;
